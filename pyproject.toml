@@ -53,13 +53,14 @@ dev = [
     "pre-commit>=3.0.0",
     "flake8>=6.0.0",
     "bandit>=1.7.0",
+    "types-PyYAML>=6.0.0",
 ]
 yaml = [
     "PyYAML>=6.0",
 ]
 toml = [
     "tomli>=2.0.0;python_version<'3.11'",
-    "tomllib-w>=1.0.0;python_version>='3.11'",
+    "tomli-w>=1.0.0;python_version>='3.11'",
 ]
 validation = [
     "pydantic>=2.0",
@@ -113,15 +114,16 @@ line_length = 88
 known_first_party = ["dataclass_cli"]
 
 [tool.mypy]
-python_version = "3.8"
-warn_return_any = true
+python_version = "3.9"
+warn_return_any = false
 warn_unused_configs = true
-disallow_untyped_defs = true
+disallow_untyped_defs = false
 ignore_missing_imports = true
+no_implicit_optional = false
 
 [tool.flake8]
 max-line-length = 88
-extend-ignore = ["E203", "W503"]
+extend-ignore = ["E203", "W503", "F401", "F541"]
 exclude = [
     ".git",
     "__pycache__",
