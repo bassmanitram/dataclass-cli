@@ -250,7 +250,10 @@ class TestAnnotationEdgeCases:
             # Manual metadata combination for complex cases
             data: str = field(
                 default="default data",
-                metadata={"cli_help": "Data content or file path", "cli_file_loadable": True},
+                metadata={
+                    "cli_help": "Data content or file path",
+                    "cli_file_loadable": True,
+                },
             )
 
         field_info = {"field_obj": Config.__dataclass_fields__["data"]}

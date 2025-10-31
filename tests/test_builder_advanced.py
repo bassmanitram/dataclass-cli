@@ -27,9 +27,7 @@ class TestDictConfigLoading:
     def test_load_dict_from_json_file(self):
         """Should load dict field from JSON file."""
         # Create settings file
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             settings = {"host": "localhost", "port": 8080, "debug": True}
             json.dump(settings, f)
             settings_path = f.name
@@ -50,17 +48,13 @@ class TestDictConfigLoading:
     def test_merge_dict_with_base_config(self):
         """Should merge dict from CLI with base config dict."""
         # Create base config with initial settings
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             base_config = {"name": "base", "settings": {"timeout": 30, "retry": 3}}
             json.dump(base_config, f)
             base_path = f.name
 
         # Create CLI settings file
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             cli_settings = {"host": "localhost", "port": 8080}
             json.dump(cli_settings, f)
             settings_path = f.name
@@ -90,9 +84,7 @@ class TestDictConfigLoading:
 
     def test_dict_with_invalid_json(self):
         """Should raise ConfigurationError for malformed dict file."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             f.write("{ invalid json }")
             invalid_path = f.name
 
@@ -116,9 +108,7 @@ class TestPropertyOverrides:
     def test_property_override_simple(self):
         """Should apply simple property override."""
         # Create settings file
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             settings = {"host": "localhost", "port": 8080}
             json.dump(settings, f)
             settings_path = f.name
@@ -144,9 +134,7 @@ class TestPropertyOverrides:
     def test_property_override_nested(self):
         """Should apply nested property override using dot notation."""
         # Create settings file
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             settings = {"database": {"host": "localhost", "port": 5432}}
             json.dump(settings, f)
             settings_path = f.name
@@ -172,9 +160,7 @@ class TestPropertyOverrides:
     def test_property_override_creates_nested_structure(self):
         """Should create nested structure if it doesn't exist."""
         # Create settings file with minimal content
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump({}, f)
             settings_path = f.name
 
@@ -198,9 +184,7 @@ class TestPropertyOverrides:
     def test_property_override_multiple(self):
         """Should apply multiple property overrides."""
         # Create settings file
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump({"a": 1, "b": 2}, f)
             settings_path = f.name
 
@@ -229,9 +213,7 @@ class TestPropertyOverrides:
 
     def test_property_override_invalid_format(self):
         """Should raise ConfigurationError for invalid override format."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump({}, f)
             settings_path = f.name
 
@@ -255,9 +237,7 @@ class TestPropertyOverrides:
 
     def test_property_override_json_values(self):
         """Should parse override values as JSON when possible."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump({}, f)
             settings_path = f.name
 
@@ -286,9 +266,7 @@ class TestPropertyOverrides:
 
     def test_property_override_without_dict_file(self):
         """Should work with overrides even without dict file."""
-        config = build_config(
-            self.AppConfig, ["--name", "test", "--s", "key:value"]
-        )
+        config = build_config(self.AppConfig, ["--name", "test", "--s", "key:value"])
 
         assert config.settings["key"] == "value"
 
@@ -339,9 +317,7 @@ class TestBuilderErrorHandling:
             count: int  # Required, no default
 
         # Missing required field 'count'
-        with pytest.raises(
-            ConfigurationError, match="Failed to create.*StrictConfig"
-        ):
+        with pytest.raises(ConfigurationError, match="Failed to create.*StrictConfig"):
             build_config(StrictConfig, ["--name", "test"])
 
 
@@ -473,9 +449,7 @@ class TestBuilderComplexScenarios:
 
     def test_combined_dict_and_overrides(self):
         """Should combine dict file loading with overrides."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump({"key1": "value1", "key2": "value2"}, f)
             settings_path = f.name
 
@@ -503,17 +477,13 @@ class TestBuilderComplexScenarios:
     def test_all_features_combined(self):
         """Should handle base config + CLI dict + overrides + lists."""
         # Create base config
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             base = {"name": "base", "items": ["base1"], "debug": False}
             json.dump(base, f)
             base_path = f.name
 
         # Create settings file
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             settings = {"original": "value"}
             json.dump(settings, f)
             settings_path = f.name

@@ -43,9 +43,7 @@ class TestLoadStructuredFile:
 
     def test_load_json_file(self):
         """Should load valid JSON file."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump({"name": "test", "count": 42}, f)
             temp_path = f.name
 
@@ -57,9 +55,7 @@ class TestLoadStructuredFile:
 
     def test_load_json_with_nested_data(self):
         """Should load JSON with nested structures."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             data = {
                 "server": {"host": "localhost", "port": 8080},
                 "features": ["auth", "logging"],
@@ -87,9 +83,7 @@ class TestLoadStructuredFile:
 
     def test_invalid_json(self):
         """Should raise ValueError for invalid JSON."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             f.write("{ invalid json }")
             temp_path = f.name
 
@@ -113,9 +107,7 @@ class TestLoadStructuredFile:
 
     def test_accepts_path_object(self):
         """Should accept Path objects in addition to strings."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump({"test": "value"}, f)
             temp_path = Path(f.name)
 
@@ -154,9 +146,7 @@ class TestLoadStructuredFileYAML:
 
     def test_load_yaml_file(self):
         """Should load valid YAML file."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("name: test\ncount: 42\n")
             temp_path = f.name
 
@@ -180,9 +170,7 @@ class TestLoadStructuredFileYAML:
 
     def test_invalid_yaml(self):
         """Should raise ValueError for invalid YAML."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("invalid: yaml: content: ::::")
             temp_path = f.name
 
@@ -194,9 +182,7 @@ class TestLoadStructuredFileYAML:
 
     def test_empty_yaml_returns_empty_dict(self):
         """Should return empty dict for empty YAML file."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("")
             temp_path = f.name
 
@@ -220,9 +206,7 @@ settings:
   debug: true
   timeout: 30
 """
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write(yaml_content)
             temp_path = f.name
 
@@ -251,9 +235,7 @@ class TestLoadStructuredFileTOML:
 
     def test_load_toml_file(self):
         """Should load valid TOML file."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".toml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
             f.write('name = "test"\ncount = 42\n')
             temp_path = f.name
 
@@ -265,9 +247,7 @@ class TestLoadStructuredFileTOML:
 
     def test_invalid_toml(self):
         """Should raise ValueError for invalid TOML."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".toml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
             f.write("invalid toml ][[]")
             temp_path = f.name
 
@@ -296,9 +276,7 @@ enabled = true
 name = "logging"
 enabled = false
 """
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".toml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
             f.write(toml_content)
             temp_path = f.name
 
@@ -322,9 +300,7 @@ class TestLoadStructuredFileMissingDependencies:
 
         monkeypatch.setattr(dataclass_cli.utils, "HAS_YAML", False)
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("test: value")
             temp_path = f.name
 
@@ -343,9 +319,7 @@ class TestLoadStructuredFileMissingDependencies:
 
         monkeypatch.setattr(dataclass_cli.utils, "HAS_TOML", False)
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".toml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
             f.write('test = "value"')
             temp_path = f.name
 
@@ -363,9 +337,7 @@ class TestLoadStructuredFileEdgeCases:
 
     def test_empty_json_file(self):
         """Should handle empty JSON file (invalid JSON)."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             f.write("")
             temp_path = f.name
 
@@ -377,9 +349,7 @@ class TestLoadStructuredFileEdgeCases:
 
     def test_json_with_comments_invalid(self):
         """JSON with comments should fail (JSON doesn't support comments)."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             f.write('// comment\n{"key": "value"}')
             temp_path = f.name
 
@@ -391,9 +361,7 @@ class TestLoadStructuredFileEdgeCases:
 
     def test_case_insensitive_extension(self):
         """Should handle extensions in any case."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".JSON", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".JSON", delete=False) as f:
             json.dump({"test": "value"}, f)
             temp_path = f.name
 

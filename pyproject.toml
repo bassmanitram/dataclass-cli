@@ -40,7 +40,7 @@ classifiers = [
     "Topic :: Utilities",
 ]
 dependencies = [
-    "typing-extensions>=4.0.0",  # Better type support for older Python versions
+    "typing-extensions>=4.0.0",
 ]
 
 [project.optional-dependencies]
@@ -60,7 +60,6 @@ yaml = [
 ]
 toml = [
     "tomli>=2.0.0;python_version<'3.11'",
-    "tomli-w>=1.0.0;python_version>='3.11'",
 ]
 validation = [
     "pydantic>=2.0",
@@ -114,7 +113,7 @@ line_length = 88
 known_first_party = ["dataclass_cli"]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 warn_return_any = false
 warn_unused_configs = true
 disallow_untyped_defs = false
@@ -136,4 +135,4 @@ exclude = [
 
 [tool.bandit]
 exclude_dirs = ["tests", "examples"]
-skips = ["B101"]  # Skip assert_used test
+skips = ["B101"]
