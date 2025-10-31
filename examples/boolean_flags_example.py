@@ -27,7 +27,9 @@ class BuildConfig:
         cli_short("t"), cli_help("Run tests"), default=True
     )
 
-    lint: bool = combine_annotations(cli_short("l"), cli_help("Run linter"), default=True)
+    lint: bool = combine_annotations(
+        cli_short("l"), cli_help("Run linter"), default=True
+    )
 
     # Optional steps (default: disabled)
     deploy: bool = combine_annotations(
@@ -69,25 +71,25 @@ def main():
 if __name__ == "__main__":
     """
     Examples:
-    
+
     # Full pipeline (all defaults)
     ./boolean_flags_example.py -p myapp
-    
+
     # Quick build (skip slow steps)
     ./boolean_flags_example.py -p myapp --no-test --no-lint
-    
+
     # Production deploy
     ./boolean_flags_example.py -p myapp -d -n
-    
+
     # Debug build
     ./boolean_flags_example.py -p myapp -D -v
-    
+
     # Minimal build (only compilation)
     ./boolean_flags_example.py -p myapp --no-test --no-lint
-    
+
     # Full pipeline with debug
     ./boolean_flags_example.py -p myapp -d -n -D -v
-    
+
     # See all options
     ./boolean_flags_example.py --help
     """

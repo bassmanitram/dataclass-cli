@@ -29,7 +29,7 @@ from dataclass_cli import (
 class DeploymentConfig:
     """
     Complete configuration for application deployment.
-    
+
     Demonstrates all major dataclass-cli features working together.
     """
 
@@ -128,9 +128,7 @@ class DeploymentConfig:
     # Hidden/Internal Fields
     # ========================================
 
-    _deployment_id: str = cli_exclude(
-        default="auto-generated"
-    )  # Won't appear in CLI
+    _deployment_id: str = cli_exclude(default="auto-generated")  # Won't appear in CLI
 
 
 def format_config(config: DeploymentConfig) -> str:
@@ -190,45 +188,45 @@ def main():
 if __name__ == "__main__":
     """
     Example Usage:
-    
+
     # Basic deployment to dev (dry run)
     ./all_features_example.py -n myapp
-    
+
     # Deploy specific version to staging
     ./all_features_example.py -n myapp -v 2.1.0 -e staging -d
-    
+
     # Production deployment with all options
     ./all_features_example.py -n myapp -v 2.1.0 -e prod -r us-west-2 -s large -d -N
-    
+
     # Quick build without tests
     ./all_features_example.py -n myapp --no-test -d
-    
+
     # Debug build with verbose output
     ./all_features_example.py -n myapp -D -V
-    
+
     # With tags and timeout
     ./all_features_example.py -n myapp -T release -T stable -T v2.1.0 --timeout 600
-    
+
     # Disable cache
     ./all_features_example.py -n myapp --no-cache
-    
+
     # See all options
     ./all_features_example.py --help
-    
+
     Example Scenarios:
-    
+
     1. Development Testing:
        ./all_features_example.py -n myapp -e dev -D -V
-    
+
     2. Staging Deployment:
        ./all_features_example.py -n myapp -v 2.1.0 -e staging -d -N
-    
+
     3. Production Release:
        ./all_features_example.py -n myapp -v 2.1.0 -e prod -r us-west-2 -s xlarge -d -N -T stable
-    
+
     4. Quick Dry Run:
        ./all_features_example.py -n myapp
-    
+
     5. Skip Tests and Deploy:
        ./all_features_example.py -n myapp --no-test -d
     """

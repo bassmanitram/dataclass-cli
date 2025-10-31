@@ -219,8 +219,9 @@ class TestCombineAnnotations:
 
     def test_combine_help_shown_in_parser(self):
         """Test that combined help text appears in argument parser."""
-        from dataclass_cli import GenericConfigBuilder
         import argparse
+
+        from dataclass_cli import GenericConfigBuilder
 
         @dataclass
         class Config:

@@ -15,7 +15,13 @@ from dataclasses import dataclass
 # Add parent directory to path for development
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from dataclass_cli import build_config, cli_short, cli_choices, cli_help, combine_annotations
+from dataclass_cli import (
+    build_config,
+    cli_choices,
+    cli_help,
+    cli_short,
+    combine_annotations,
+)
 
 
 @dataclass

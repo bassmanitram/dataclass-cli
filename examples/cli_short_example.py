@@ -15,7 +15,7 @@ from dataclasses import dataclass
 # Add parent directory to path for development
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from dataclass_cli import build_config, cli_short, cli_help, combine_annotations
+from dataclass_cli import build_config, cli_help, cli_short, combine_annotations
 
 
 @dataclass
@@ -25,20 +25,16 @@ class ServerConfig:
     # Short options only
     name: str = cli_short("n")
     port: int = cli_short("p", default=8080)
-    
+
     # Short options with help text
     verbose: bool = combine_annotations(
-        cli_short("v"),
-        cli_help("Enable verbose output"),
-        default=False
+        cli_short("v"), cli_help("Enable verbose output"), default=False
     )
-    
+
     debug: bool = combine_annotations(
-        cli_short("d"),
-        cli_help("Enable debug mode"),
-        default=False
+        cli_short("d"), cli_help("Enable debug mode"), default=False
     )
-    
+
     # No short option (just long form)
     workers: int = cli_help("Number of worker processes", default=4)
 
