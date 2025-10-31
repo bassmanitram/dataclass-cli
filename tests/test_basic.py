@@ -39,7 +39,7 @@ class TestBasicFunctionality:
     def test_simple_config_creation(self):
         """Test creating a simple config from CLI args."""
         config = build_config_from_cli(
-            SimpleConfig, ["--name", "test", "--count", "5", "--debug", "true"]
+            SimpleConfig, ["--name", "test", "--count", "5", "--debug"]
         )
 
         assert config.name == "test"
@@ -55,25 +55,18 @@ class TestBasicFunctionality:
         assert config.debug is False  # Default value
 
     def test_boolean_parsing(self):
-        """Test various boolean value formats."""
-        test_cases = [
-            ("true", True),
-            ("false", False),
-            ("1", True),
-            ("0", False),
-            ("yes", True),
-            ("no", False),
-            ("on", True),
-            ("off", False),
-            ("TRUE", True),
-            ("FALSE", False),
-        ]
+        """Test boolean flags with positive and negative forms."""
+        # Test positive flag (sets to True)
+        config = build_config_from_cli(SimpleConfig, ["--name", "test", "--debug"])
+        assert config.debug is True
 
-        for bool_str, expected in test_cases:
-            config = build_config_from_cli(
-                SimpleConfig, ["--name", "test", "--debug", bool_str]
-            )
-            assert config.debug is expected, f"Failed for input: {bool_str}"
+        # Test negative flag (sets to False)
+        config = build_config_from_cli(SimpleConfig, ["--name", "test", "--no-debug"])
+        assert config.debug is False
+
+        # Test default (no flag)
+        config = build_config_from_cli(SimpleConfig, ["--name", "test"])
+        assert config.debug is False  # default is False
 
     def test_complex_types(self):
         """Test handling of complex types like lists and dicts."""

@@ -6,7 +6,7 @@ be excluded from CLI argument generation or have special behaviors.
 """
 
 from dataclasses import field
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 
 def cli_exclude(**kwargs) -> Any:
@@ -85,6 +85,83 @@ def cli_help(help_text: str, **kwargs) -> Any:
     return field(**field_kwargs)
 
 
+def cli_short(short: str, **kwargs) -> Any:
+    """
+    Add short-form option for a CLI argument.
+
+    Args:
+        short: Single character for short option (e.g., 'n' for -n)
+        **kwargs: Additional field parameters
+
+    Returns:
+        Field object with short option metadata
+
+    Raises:
+        ValueError: If short is not a single character
+
+    Example:
+        @dataclass
+        class Config:
+            name: str = cli_short('n')
+            host: str = cli_short('H', default="localhost")
+            port: int = cli_short('p', default=8080)
+
+        # Usage: -n MyApp -H 0.0.0.0 -p 9000
+        # or:    --name MyApp --host 0.0.0.0 --port 9000
+        # mixed: -n MyApp --host 0.0.0.0 -p 9000
+    """
+    if not isinstance(short, str) or len(short) != 1:
+        raise ValueError(f"Short option must be a single character, got: {repr(short)}")
+
+    field_kwargs = kwargs.copy()
+    metadata = field_kwargs.pop("metadata", {})
+    metadata["cli_short"] = short
+    field_kwargs["metadata"] = metadata
+    return field(**field_kwargs)
+
+
+def cli_choices(choices: List[Any], **kwargs) -> Any:
+    """
+    Restrict field to a specific set of valid choices.
+
+    Args:
+        choices: List of valid values for the field
+        **kwargs: Additional field parameters
+
+    Returns:
+        Field object with choices metadata
+
+    Raises:
+        ValueError: If choices is empty
+
+    Example:
+        @dataclass
+        class Config:
+            # Simple choices
+            environment: str = cli_choices(['dev', 'staging', 'prod'])
+            size: str = cli_choices(['small', 'medium', 'large'], default='medium')
+
+            # Combined with other annotations
+            region: str = combine_annotations(
+                cli_short('r'),
+                cli_choices(['us-east-1', 'us-west-2', 'eu-west-1']),
+                cli_help("AWS region"),
+                default='us-east-1'
+            )
+
+        # Usage: --environment prod --size large --region us-west-2
+        # Invalid: --environment invalid  # Error with valid choices shown
+    """
+    if not choices:
+        raise ValueError("cli_choices requires at least one choice")
+
+    field_kwargs = kwargs.copy()
+    metadata = field_kwargs.pop("metadata", {})
+    metadata["cli_choices"] = list(choices)  # Convert to list for consistency
+    field_kwargs["metadata"] = metadata
+    return field(**field_kwargs)
+
+
 def cli_file_loadable(**kwargs) -> Any:
     """
     Mark a string field as file-loadable via '@' prefix.
@@ -139,6 +216,20 @@ def combine_annotations(*annotations, **field_kwargs) -> Any:
                 cli_help("Message content"),
                 cli_file_loadable(),
                 default="Default message"
+            )
+
+            # With short option
+            name: str = combine_annotations(
+                cli_short('n'),
+                cli_help("Application name")
+            )
+
+            # With choices
+            region: str = combine_annotations(
+                cli_short('r'),
+                cli_choices(['us-east', 'us-west']),
+                cli_help("Region"),
+                default='us-east'
             )
     """
     combined_metadata = field_kwargs.pop("metadata", {})
@@ -202,6 +293,38 @@ def is_cli_file_loadable(field_info: Dict[str, Any]) -> bool:
         return field_obj.metadata.get("cli_file_loadable", False)
 
     return False
+
+
+def get_cli_short(field_info: Dict[str, Any]) -> Optional[str]:
+    """
+    Get short option character for a CLI argument.
+
+    Args:
+        field_info: Field information dictionary from GenericConfigBuilder
+
+    Returns:
+        Short option character if available, otherwise None
+    """
+    field_obj = field_info.get("field_obj")
+    if field_obj and hasattr(field_obj, "metadata"):
+        return field_obj.metadata.get("cli_short")
+    return None
+
+
+def get_cli_choices(field_info: Dict[str, Any]) -> Optional[List[Any]]:
+    """
+    Get restricted choices for a CLI argument.
+
+    Args:
+        field_info: Field information dictionary from GenericConfigBuilder
+
+    Returns:
+        List of valid choices if available, otherwise None
+    """
+    field_obj = field_info.get("field_obj")
+    if field_obj and hasattr(field_obj, "metadata"):
+        return field_obj.metadata.get("cli_choices")
+    return None
 
 
 def get_cli_help(field_info: Dict[str, Any]) -> str:

@@ -505,7 +505,6 @@ class TestBuilderComplexScenarios:
                     "--s",
                     "added:override",
                     "--debug",
-                    "true",
                 ],
             )
 

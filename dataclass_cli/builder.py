@@ -21,7 +21,7 @@ try:
 except ImportError:
     from typing_extensions import get_args, get_origin, get_type_hints  # type: ignore[assignment,no-redef]
 
-from .annotations import get_cli_help, is_cli_excluded
+from .annotations import get_cli_choices, get_cli_help, get_cli_short, is_cli_excluded
 from .exceptions import ConfigBuilderError, ConfigurationError
 from .file_loading import process_file_loadable_value
 from .utils import load_structured_file
@@ -186,22 +186,48 @@ class GenericConfigBuilder:
         self, parser: argparse.ArgumentParser, field_name: str, info: Dict[str, Any]
     ) -> None:
         """Add CLI argument for a specific config field."""
+        # Special handling for boolean fields
+        if info["type"] == bool:
+            self._add_boolean_argument(parser, field_name, info)
+            return
+
         cli_name = info["cli_name"]
+
+        # Get short option from metadata
+        short_option = get_cli_short(info)
+
+        # Build argument names list
+        arg_names = []
+        if short_option:
+            arg_names.append(f"-{short_option}")  # Short comes first: -n
+        arg_names.append(cli_name)  # Then long: --name
 
         # Get custom help text from annotations or use default
         custom_help = get_cli_help(info)
         help_text = custom_help if custom_help else f"{field_name}"
 
+        # Get restricted choices if specified
+        choices = get_cli_choices(info)
+        if choices:
+            # Add choices hint to help text
+            choices_str = ", ".join(str(c) for c in choices)
+            if help_text:
+                help_text += f" (choices: {choices_str})"
+            else:
+                help_text = f"choices: {choices_str}"
+
         if info["is_list"]:
             # List parameters can be specified multiple times
             help_text += " (can be specified multiple times)"
-            parser.add_argument(cli_name, action="append", help=help_text)
+            parser.add_argument(
+                *arg_names, action="append", choices=choices, help=help_text
+            )
         elif info["is_dict"]:
             # Dict parameters are file paths
             parser.add_argument(
-                cli_name, type=str, help=f"{help_text} configuration file path"
+                *arg_names, type=str, help=f"{help_text} configuration file path"
             )
-            # Add override argument for dict fields
+            # Add override argument for dict fields (no short form for overrides)
             parser.add_argument(
                 info["override_name"],
                 action="append",
@@ -210,14 +236,57 @@ class GenericConfigBuilder:
         else:
             # Simple scalar parameters
             arg_type = self._get_argument_type(info["type"])
-            parser.add_argument(cli_name, type=arg_type, help=help_text)
+            parser.add_argument(
+                *arg_names, type=arg_type, choices=choices, help=help_text
+            )
+
+    def _add_boolean_argument(
+        self, parser: argparse.ArgumentParser, field_name: str, info: Dict[str, Any]
+    ) -> None:
+        """Add boolean argument with positive and negative forms."""
+        cli_name = info["cli_name"]
+        dest_name = field_name.replace("-", "_")
+
+        # Get short option from metadata
+        short_option = get_cli_short(info)
+
+        # Build argument names for positive form
+        positive_args = []
+        if short_option:
+            positive_args.append(f"-{short_option}")
+        positive_args.append(cli_name)
+
+        # Get custom help text
+        custom_help = get_cli_help(info)
+        help_text = custom_help if custom_help else field_name
+
+        # Get default value
+        default_value = info.get("default", False)
+
+        # Set parser default to the field's default value
+        parser.set_defaults(**{dest_name: default_value})
+
+        # Add positive form (--flag or -f)
+        parser.add_argument(
+            *positive_args,
+            action="store_true",
+            dest=dest_name,
+            help=f"{help_text} (default: {default_value})",
+        )
+
+        # Add negative form (--no-flag)
+        negative_name = f"--no-{field_name.replace('_', '-')}"
+        parser.add_argument(
+            negative_name,
+            action="store_false",
+            dest=dest_name,
+            help=f"Disable {help_text}",
+        )
 
     def _get_argument_type(self, field_type: Type) -> Callable[[str], Any]:
         """Get appropriate argparse type for field type."""
-        if field_type == bool:
-            # Handle boolean as store_true/store_false would be more complex
-            return lambda x: x.lower() in ("true", "1", "yes", "on")
-        elif field_type in (int, float, str):
+        # Note: bool is handled separately in _add_boolean_argument
+        if field_type in (int, float, str):
             return field_type
         else:
             # For complex types, use string and let validation handle it
