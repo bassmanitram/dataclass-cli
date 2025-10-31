@@ -1,0 +1,73 @@
+name: Project Status
+
+on:
+  schedule:
+    # Run daily at 8 AM UTC
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev,all]"
+
+    - name: Run comprehensive tests
+      run: |
+        pytest tests/ -v --cov=dataclass_cli --cov-report=term-missing
+
+    - name: Check code quality
+      run: |
+        black --check dataclass_cli/ tests/ examples/
+        isort --check-only dataclass_cli/ tests/ examples/
+        mypy dataclass_cli/
+        flake8 dataclass_cli/
+
+    - name: Test examples
+      run: |
+        cd examples
+        python basic_example.py --name "StatusTest" --count 1
+        python advanced_example.py --name "StatusTest" --debug false
+
+    - name: Package health check
+      run: |
+        python -m build
+        twine check dist/*
+        pip install dist/*.whl
+        python -c "
+        import dataclass_cli
+        print(f'Package version: {dataclass_cli.__version__}')
+        print('All imports successful')
+        "
+
+    - name: Generate status report
+      run: |
+        echo "# Project Status Report" > status-report.md
+        echo "Generated: $(date)" >> status-report.md
+        echo "" >> status-report.md
+        echo "## Test Results" >> status-report.md
+        pytest tests/ --tb=no -q >> status-report.md 2>&1 || true
+        echo "" >> status-report.md
+        echo "## Package Information" >> status-report.md
+        python -c "
+        import dataclass_cli
+        print(f'Version: {dataclass_cli.__version__}')
+        print(f'Available functions: {len([x for x in dir(dataclass_cli) if not x.startswith(\"_\")])}')
+        " >> status-report.md
+
+    - name: Upload status report
+      uses: actions/upload-artifact@v3
+      with:
+        name: status-report
+        path: status-report.md

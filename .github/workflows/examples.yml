@@ -1,0 +1,53 @@
+name: Examples
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test-examples:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.10", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[all]"
+
+    - name: Test basic example
+      run: |
+        cd examples
+        python basic_example.py --name "TestApp" --count 3 --debug true
+
+    - name: Test advanced example
+      run: |
+        cd examples
+        python advanced_example.py --name "TestServer" --debug true
+
+    - name: Test advanced example with file loading
+      run: |
+        cd examples
+        python advanced_example.py --name "FileServer" --system-prompt "@prompts/server_prompt.txt"
+
+    - name: Test advanced example with config file
+      run: |
+        cd examples
+        python advanced_example.py --config server_config.yaml --name "ConfigServer"
+
+    - name: Test help output
+      run: |
+        cd examples
+        python basic_example.py --help
+        python advanced_example.py --help

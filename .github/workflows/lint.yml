@@ -1,0 +1,42 @@
+name: Lint
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Lint with black
+      run: |
+        black --check --diff dataclass_cli/ tests/ examples/
+
+    - name: Sort imports with isort
+      run: |
+        isort --check-only --diff dataclass_cli/ tests/ examples/
+
+    - name: Type check with mypy
+      run: |
+        mypy dataclass_cli/
+
+    - name: Check package metadata
+      run: |
+        python -m pip install build twine
+        python -m build
+        twine check dist/*
