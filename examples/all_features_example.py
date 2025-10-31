@@ -112,7 +112,7 @@ class DeploymentConfig:
 
     tags: List[str] = combine_annotations(
         cli_short("T"),
-        cli_help("Additional tags for the deployment (can specify multiple times)"),
+        cli_help("Additional tags for the deployment"),
         default_factory=list,
     )
 
@@ -205,7 +205,7 @@ if __name__ == "__main__":
     ./all_features_example.py -n myapp -D -V
 
     # With tags and timeout
-    ./all_features_example.py -n myapp -T release -T stable -T v2.1.0 --timeout 600
+    ./all_features_example.py -n myapp -T release stable v2.1.0 --timeout 600
 
     # Disable cache
     ./all_features_example.py -n myapp --no-cache

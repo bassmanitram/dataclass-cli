@@ -217,21 +217,37 @@ class GenericConfigBuilder:
                 help_text = f"choices: {choices_str}"
 
         if info["is_list"]:
-            # List parameters can be specified multiple times
-            help_text += " (can be specified multiple times)"
+            # List parameters accept multiple values after a single flag
+            # Use nargs='+' for required lists (one or more values)
+            # Use nargs='*' for optional lists (zero or more values)
+            if info["is_optional"]:
+                nargs_val = "*"  # Zero or more values for Optional[List[T]]
+                help_text += " (specify zero or more values)"
+            else:
+                nargs_val = "+"  # One or more values for List[T]
+                help_text += " (specify one or more values)"
+
             parser.add_argument(
-                *arg_names, action="append", choices=choices, help=help_text
+                *arg_names, nargs=nargs_val, choices=choices, help=help_text
             )
         elif info["is_dict"]:
             # Dict parameters are file paths
-            parser.add_argument(
-                *arg_names, type=str, help=f"{help_text} configuration file path"
+            dict_help = (
+                f"{help_text} configuration file path"
+                if help_text
+                else "configuration file path"
             )
+            parser.add_argument(*arg_names, type=str, help=dict_help)
             # Add override argument for dict fields (no short form for overrides)
+            override_help = (
+                f"{help_text} property override (format: key.path:value)"
+                if help_text
+                else "property override (format: key.path:value)"
+            )
             parser.add_argument(
                 info["override_name"],
                 action="append",
-                help=f"{help_text} property override (format: key.path:value)",
+                help=override_help,
             )
         else:
             # Simple scalar parameters
@@ -349,12 +365,9 @@ class GenericConfigBuilder:
 
             if cli_value is not None:
                 if info["is_list"]:
-                    # For lists, extend existing list or create new one
-                    existing = config.get(field_name, [])
-                    if isinstance(existing, list):
-                        config[field_name] = existing + cli_value
-                    else:
-                        config[field_name] = cli_value
+                    # CLI values replace base config values (standard argparse behavior)
+                    # With nargs='+' or '*', cli_value is already a list
+                    config[field_name] = cli_value
                 elif info["is_dict"]:
                     # For dicts, load from file
                     try:
@@ -400,7 +413,6 @@ class GenericConfigBuilder:
         """Apply property path overrides to target dictionary."""
         for override in overrides:
             if ":" not in override:
-                # Note: In standalone version, we don't have logger, so we raise an error
                 raise ValueError(
                     f"Invalid override format: {override} (expected key.path:value)"
                 )
@@ -471,12 +483,13 @@ def build_config_from_cli(
             message: str = cli_file_loadable(cli_help("Message text"))
             items: Optional[List[str]] = None
             settings: Optional[dict] = None
-            _secret: str = cli_exclude(default="hidden")  # Won't be CLI argument
+            _secret: str = cli_exclude(default="hidden")
 
         # Usage:
         config = build_config_from_cli(MyConfig, [
             '--name', 'test',
-            '--message', '@/path/to/message.txt'  # Loads file content
+            '--items', 'a', 'b', 'c',
+            '--message', '@/path/to/message.txt'
         ])
     """
     if args is None:

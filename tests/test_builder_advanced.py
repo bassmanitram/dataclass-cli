@@ -442,7 +442,7 @@ class TestBuilderComplexScenarios:
         """Should accumulate multiple list items."""
         config = build_config(
             self.ComplexConfig,
-            ["--name", "test", "--items", "a", "--items", "b", "--items", "c"],
+            ["--name", "test", "--items", "a", "b", "c"],
         )
 
         assert config.items == ["a", "b", "c"]
@@ -498,7 +498,6 @@ class TestBuilderComplexScenarios:
                     "overridden",
                     "--items",
                     "cli1",
-                    "--items",
                     "cli2",
                     "--settings",
                     settings_path,
@@ -509,7 +508,7 @@ class TestBuilderComplexScenarios:
             )
 
             assert config.name == "overridden"  # CLI override
-            assert config.items == ["base1", "cli1", "cli2"]  # Merged lists
+            assert config.items == ["cli1", "cli2"]  # CLI replaces base
             assert config.settings["original"] == "value"  # From file
             assert config.settings["added"] == "override"  # From override
             assert config.debug is True  # CLI override

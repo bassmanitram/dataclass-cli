@@ -95,7 +95,7 @@ Builds dataclass instances from CLI arguments and optional base config file.
 Supports any dataclass type with:
 - Optional base config file loading
 - Type-aware CLI argument parsing
-- List parameter accumulation
+- List parameter handling with multiple values
 - Object parameter file loading with property overrides
 - File-loadable string parameters via '@' prefix
 - Hierarchical merging of configuration sources

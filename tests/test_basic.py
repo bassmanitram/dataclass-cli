@@ -79,9 +79,7 @@ class TestBasicFunctionality:
                 "9000",
                 "--items",
                 "item1",
-                "--items",
                 "item2",
-                "--items",
                 "item3",
                 "--timeout",
                 "30.5",
@@ -94,6 +92,49 @@ class TestBasicFunctionality:
         assert config.timeout == 30.5
         assert config._internal == "hidden"  # Excluded field keeps default
 
+    def test_list_single_value(self):
+        """Test list parameter with single value."""
+        config = build_config_from_cli(
+            ComplexConfig,
+            [
+                "--host",
+                "localhost",
+                "--items",
+                "single_item",
+            ],
+        )
+
+        assert config.items == ["single_item"]
+
+    def test_list_multiple_values(self):
+        """Test list parameter with multiple values after single flag."""
+        config = build_config_from_cli(
+            ComplexConfig,
+            [
+                "--host",
+                "localhost",
+                "--items",
+                "a",
+                "b",
+                "c",
+                "d",
+            ],
+        )
+
+        assert config.items == ["a", "b", "c", "d"]
+
+    def test_list_empty_with_defaults(self):
+        """Test list parameter when not provided uses default."""
+        config = build_config_from_cli(
+            ComplexConfig,
+            [
+                "--host",
+                "localhost",
+            ],
+        )
+
+        assert config.items == []  # default_factory=list
+
     def test_optional_types(self):
         """Test handling of optional types."""
         # Without optional value
@@ -105,6 +146,56 @@ class TestBasicFunctionality:
             ComplexConfig, ["--host", "localhost", "--timeout", "15.0"]
         )
         assert config2.timeout == 15.0
+
+
+class TestListParameterHandling:
+    """Test list parameter handling with nargs."""
+
+    @dataclass
+    class ListConfig:
+        name: str
+        items: List[str]
+        tags: Optional[List[str]] = None
+
+    def test_required_list_single_value(self):
+        """Test required list with single value."""
+        config = build_config_from_cli(
+            self.ListConfig,
+            ["--name", "test", "--items", "one"],
+        )
+        assert config.items == ["one"]
+
+    def test_required_list_multiple_values(self):
+        """Test required list with multiple values."""
+        config = build_config_from_cli(
+            self.ListConfig,
+            ["--name", "test", "--items", "one", "two", "three"],
+        )
+        assert config.items == ["one", "two", "three"]
+
+    def test_optional_list_not_provided(self):
+        """Test optional list when flag not provided."""
+        config = build_config_from_cli(
+            self.ListConfig,
+            ["--name", "test", "--items", "one"],
+        )
+        assert config.tags is None
+
+    def test_optional_list_with_values(self):
+        """Test optional list with values provided."""
+        config = build_config_from_cli(
+            self.ListConfig,
+            ["--name", "test", "--items", "one", "--tags", "tag1", "tag2"],
+        )
+        assert config.tags == ["tag1", "tag2"]
+
+    def test_optional_list_empty(self):
+        """Test optional list with flag but no values."""
+        config = build_config_from_cli(
+            self.ListConfig,
+            ["--name", "test", "--items", "one", "--tags"],
+        )
+        assert config.tags == []
 
 
 class TestErrorHandling:
@@ -156,8 +247,7 @@ class TestAnnotations:
 
     def test_help_text_generation(self):
         """Test that help text is properly generated."""
-        # This is more of an integration test - would need to capture help output
-        # For now, just verify the config builds successfully
+        # Verify the config builds successfully with help annotations
         config = build_config_from_cli(self.AnnotatedConfig, ["--public-field", "test"])
         assert config.public_field == "test"
 

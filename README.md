@@ -504,7 +504,7 @@ Dataclass CLI supports standard Python types:
 | `int` | Parsed as integer | `--count 42` |
 | `float` | Parsed as float | `--rate 0.1` |
 | `bool` | Flag with negative | `--debug` or `--no-debug` |
-| `List[T]` | Multiple values | `--items a --items b` |
+| `List[T]` | Multiple values | `--items a b c` |
 | `Dict[str, Any]` | Config file + overrides | `--config file.json --c key:value` |
 | `Optional[T]` | Optional parameter | `--timeout 30` (or omit) |
 | `Path` | Path object | `--output /path/to/file` |
@@ -700,4 +700,4 @@ class Config:
 config = build_config(Config)
 ```
 
-That's it! Define your dataclass, add annotations as needed, and `build_config()` handles the rest.
+Define your dataclass, add annotations as needed, and call `build_config()` to parse command-line arguments.
