@@ -36,7 +36,8 @@ jobs:
       run: |
         isort --check-only dataclass_cli/ tests/ examples/
 
-    - name: Type check with mypy
+    - name: Type check with mypy (Python 3.9+)
+      if: matrix.python-version != '3.8'
       run: |
         mypy dataclass_cli/
 

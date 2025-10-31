@@ -9,22 +9,15 @@ import argparse
 import json
 import sys
 from dataclasses import fields, is_dataclass
-from pathlib import Path
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Set,
-    Type,
-    Union,
-    get_args,
-    get_origin,
-    get_type_hints,
-)
+from typing import Any, Callable, Dict, List, Optional, Set, Type, Union
 
-from .annotations import get_cli_help, is_cli_excluded, is_cli_file_loadable
+try:
+    from typing import get_args, get_origin, get_type_hints
+except ImportError:
+    # Python < 3.8 compatibility
+    from typing_extensions import get_args, get_origin, get_type_hints
+
+from .annotations import get_cli_help, is_cli_excluded
 from .exceptions import ConfigBuilderError, ConfigurationError
 from .file_loading import process_file_loadable_value
 from .utils import load_structured_file
