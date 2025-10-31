@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from dataclass_cli import (
+from dataclass_config import (
     GenericConfigBuilder,
     build_config,
     cli_help,

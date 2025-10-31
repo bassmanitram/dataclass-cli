@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""CI Environment Check Script - Diagnoses common CI failures for dataclass-cli."""
+"""CI Environment Check Script - Diagnoses common CI failures for dataclass-config."""
 
 import subprocess
 import sys
@@ -47,8 +47,8 @@ def main():
 
     checks = [
         (
-            "Import dataclass_cli",
-            "python -c 'import dataclass_cli; print(dataclass_cli.__version__)'",
+            "Import dataclass_config",
+            "python -c 'import dataclass_config; print(dataclass_config.__version__)'",
         ),
         (
             "Import typing_extensions",
@@ -61,9 +61,9 @@ def main():
         ("Run pytest discovery", "python -m pytest tests/ --collect-only -q"),
         ("Run basic tests", "python -m pytest tests/test_basic.py -v"),
         ("Run file loading tests", "python -m pytest tests/test_file_loading.py -v"),
-        ("Black check", "black --check dataclass_cli/ tests/ examples/", False),
-        ("isort check", "isort --check-only dataclass_cli/ tests/ examples/", False),
-        ("mypy check (may fail on 3.8)", "mypy dataclass_cli/", False),
+        ("Black check", "black --check dataclass_config/ tests/ examples/", False),
+        ("isort check", "isort --check-only dataclass_config/ tests/ examples/", False),
+        ("mypy check (may fail on 3.8)", "mypy dataclass_config/", False),
     ]
 
     passed = 0

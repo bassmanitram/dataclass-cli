@@ -9,9 +9,9 @@ from pathlib import Path
 
 import pytest
 
-from dataclass_cli import build_config_from_cli, cli_file_loadable, cli_help
-from dataclass_cli.exceptions import FileLoadingError
-from dataclass_cli.file_loading import (
+from dataclass_config import build_config_from_cli, cli_file_loadable, cli_help
+from dataclass_config.exceptions import FileLoadingError
+from dataclass_config.file_loading import (
     is_file_loadable_value,
     load_file_content,
     process_file_loadable_value,
@@ -230,7 +230,7 @@ class TestFileLoadableConfig:
     def test_file_loading_error_handling(self):
         """Test error handling when file loading fails."""
         # Test that configuration errors are properly raised (not SystemExit)
-        from dataclass_cli.exceptions import ConfigurationError
+        from dataclass_config.exceptions import ConfigurationError
 
         with pytest.raises((SystemExit, ConfigurationError, ValueError)):
             build_config_from_cli(

@@ -8,7 +8,7 @@ forms, allowing explicit control over boolean settings.
 
 from dataclasses import dataclass
 
-from dataclass_cli import build_config, cli_help, cli_short, combine_annotations
+from dataclass_config import build_config, cli_help, cli_short, combine_annotations
 
 
 @dataclass

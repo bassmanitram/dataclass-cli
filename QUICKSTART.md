@@ -1,11 +1,11 @@
 # Quick Start Guide
 
-Get started with dataclass-cli in 5 minutes.
+Get started with dataclass-config in 5 minutes.
 
 ## Installation
 
 ```bash
-pip install dataclass-cli
+pip install dataclass-config
 ```
 
 ## 1. Basic Usage
@@ -14,7 +14,7 @@ pip install dataclass-cli
 
 ```python
 from dataclasses import dataclass
-from dataclass_cli import build_config
+from dataclass_config import build_config
 
 @dataclass
 class Config:
@@ -35,7 +35,7 @@ myapp on port 9000
 **Use `cli_short()` for concise `-n` flags:**
 
 ```python
-from dataclass_cli import cli_short
+from dataclass_config import cli_short
 
 @dataclass
 class Config:
@@ -73,7 +73,7 @@ $ python app.py -n myapp --no-optimize   # Disable optimize
 **Use `cli_choices()` to restrict values:**
 
 ```python
-from dataclass_cli import cli_choices
+from dataclass_config import cli_choices
 
 @dataclass
 class Config:
@@ -93,7 +93,7 @@ $ python app.py -n myapp --environment test   # ✗ Error: invalid choice
 **Use `combine_annotations()` to use multiple features together:**
 
 ```python
-from dataclass_cli import combine_annotations, cli_short, cli_choices, cli_help
+from dataclass_config import combine_annotations, cli_short, cli_choices, cli_help
 
 @dataclass
 class Config:
@@ -136,7 +136,7 @@ options:
 
 ```python
 from dataclasses import dataclass
-from dataclass_cli import build_config, combine_annotations, cli_short, cli_choices, cli_help
+from dataclass_config import build_config, combine_annotations, cli_short, cli_choices, cli_help
 
 @dataclass
 class ServerConfig:
@@ -268,4 +268,4 @@ $ python build.py -p myapp --no-test            # Skip tests
 $ python build.py -p myapp -d -v                # Deploy with verbose
 ```
 
-That's it! You now know enough to build powerful CLIs with dataclass-cli. 🚀
+That's it! You now know enough to build powerful CLIs with dataclass-config. 🚀

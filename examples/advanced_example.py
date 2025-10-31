@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Optional
 # Add parent directory to path for development
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from dataclass_cli import build_config, cli_exclude, cli_file_loadable, cli_help
+from dataclass_config import build_config, cli_exclude, cli_file_loadable, cli_help
 
 
 @dataclass

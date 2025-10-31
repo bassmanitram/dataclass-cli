@@ -3,14 +3,14 @@ requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "dataclass-cli"
-version = "0.1.0"
+name = "dataclass-config"
+version = "1.0.0"
 description = "Zero-boilerplate CLI generation from Python dataclasses with advanced type support and file loading"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-    {name = "bassmanitram", email = "bassmanitram@users.noreply.github.com"},
+    {name = "Martin Bartlett", email = "martin.j.bartlett@gmail.com"},
 ]
 keywords = [
     "cli",
@@ -24,7 +24,7 @@ keywords = [
     "config-merging"
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
@@ -65,18 +65,18 @@ validation = [
     "pydantic>=2.0",
 ]
 all = [
-    "dataclass-cli[yaml,toml,validation]",
+    "dataclass-config[yaml,toml,validation]",
 ]
 
 [project.urls]
-Homepage = "https://github.com/bassmanitram/dataclass-cli"
-Repository = "https://github.com/bassmanitram/dataclass-cli"
-Documentation = "https://github.com/bassmanitram/dataclass-cli#readme"
-Issues = "https://github.com/bassmanitram/dataclass-cli/issues"
+Homepage = "https://github.com/bassmanitram/dataclass-config"
+Repository = "https://github.com/bassmanitram/dataclass-config"
+Documentation = "https://github.com/bassmanitram/dataclass-config#readme"
+Issues = "https://github.com/bassmanitram/dataclass-config/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["dataclass_cli*"]
+include = ["dataclass_config*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -110,7 +110,7 @@ extend-exclude = '''
 profile = "black"
 multi_line_output = 3
 line_length = 88
-known_first_party = ["dataclass_cli"]
+known_first_party = ["dataclass_config"]
 
 [tool.mypy]
 python_version = "3.9"

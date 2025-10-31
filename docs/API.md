@@ -1,6 +1,6 @@
 # API Documentation
 
-This document provides detailed API reference for dataclass-cli.
+This document provides detailed API reference for dataclass-config.
 
 ## Main Functions
 
@@ -19,7 +19,7 @@ Uses default settings suitable for most use cases.
 **Example:**
 ```python
 from dataclasses import dataclass
-from dataclass_cli import build_config
+from dataclass_config import build_config
 
 @dataclass
 class Config:

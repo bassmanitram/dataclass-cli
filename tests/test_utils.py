@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from dataclass_cli.utils import exclude_internal_fields, load_structured_file
+from dataclass_config.utils import exclude_internal_fields, load_structured_file
 
 
 class TestExcludeInternalFields:
@@ -296,9 +296,9 @@ class TestLoadStructuredFileMissingDependencies:
     def test_yaml_without_pyyaml(self, monkeypatch):
         """Should raise helpful error for YAML without PyYAML installed."""
         # Mock HAS_YAML to False
-        import dataclass_cli.utils
+        import dataclass_config.utils
 
-        monkeypatch.setattr(dataclass_cli.utils, "HAS_YAML", False)
+        monkeypatch.setattr(dataclass_config.utils, "HAS_YAML", False)
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("test: value")
@@ -315,9 +315,9 @@ class TestLoadStructuredFileMissingDependencies:
     def test_toml_without_tomli(self, monkeypatch):
         """Should raise helpful error for TOML without tomli/tomllib."""
         # Mock HAS_TOML to False
-        import dataclass_cli.utils
+        import dataclass_config.utils
 
-        monkeypatch.setattr(dataclass_cli.utils, "HAS_TOML", False)
+        monkeypatch.setattr(dataclass_config.utils, "HAS_TOML", False)
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
             f.write('test = "value"')

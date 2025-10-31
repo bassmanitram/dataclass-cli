@@ -1,13 +1,13 @@
-# Dataclass CLI
+# Dataclass Argparse
 
 Generate command-line interfaces from Python dataclasses.
 
-[![Tests](https://github.com/bassmanitram/dataclass-cli/actions/workflows/test.yml/badge.svg)](https://github.com/bassmanitram/dataclass-cli/actions/workflows/test.yml)
-[![Code Quality](https://github.com/bassmanitram/dataclass-cli/actions/workflows/lint.yml/badge.svg)](https://github.com/bassmanitram/dataclass-cli/actions/workflows/lint.yml)
-[![Examples](https://github.com/bassmanitram/dataclass-cli/actions/workflows/examples.yml/badge.svg)](https://github.com/bassmanitram/dataclass-cli/actions/workflows/examples.yml)
-[![codecov](https://codecov.io/gh/bassmanitram/dataclass-cli/branch/main/graph/badge.svg)](https://codecov.io/gh/bassmanitram/dataclass-cli)
+[![Tests](https://github.com/bassmanitram/dataclass-config/actions/workflows/test.yml/badge.svg)](https://github.com/bassmanitram/dataclass-config/actions/workflows/test.yml)
+[![Code Quality](https://github.com/bassmanitram/dataclass-config/actions/workflows/lint.yml/badge.svg)](https://github.com/bassmanitram/dataclass-config/actions/workflows/lint.yml)
+[![Examples](https://github.com/bassmanitram/dataclass-config/actions/workflows/examples.yml/badge.svg)](https://github.com/bassmanitram/dataclass-config/actions/workflows/examples.yml)
+[![codecov](https://codecov.io/gh/bassmanitram/dataclass-config/branch/main/graph/badge.svg)](https://codecov.io/gh/bassmanitram/dataclass-config)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![PyPI version](https://badge.fury.io/py/dataclass-cli.svg)](https://badge.fury.io/py/dataclass-cli)
+[![PyPI version](https://badge.fury.io/py/dataclass-config.svg)](https://badge.fury.io/py/dataclass-config)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
@@ -28,18 +28,18 @@ Generate command-line interfaces from Python dataclasses.
 ### Installation
 
 ```bash
-pip install dataclass-cli
+pip install dataclass-config
 
 # With optional format support
-pip install "dataclass-cli[yaml,toml]"  # YAML and TOML config files
-pip install "dataclass-cli[all]"        # All optional dependencies
+pip install "dataclass-config[yaml,toml]"  # YAML and TOML config files
+pip install "dataclass-config[all]"        # All optional dependencies
 ```
 
 ### Basic Usage
 
 ```python
 from dataclasses import dataclass
-from dataclass_cli import build_config
+from dataclass_config import build_config
 
 @dataclass
 class Config:
@@ -79,7 +79,7 @@ options:
 Add concise short flags to your CLI:
 
 ```python
-from dataclass_cli import cli_short
+from dataclass_config import cli_short
 
 @dataclass
 class ServerConfig:
@@ -141,7 +141,7 @@ $ python app.py --no-verbose       # Negative form
 Restrict field values to a valid set:
 
 ```python
-from dataclass_cli import cli_choices
+from dataclass_config import cli_choices
 
 @dataclass
 class DeployConfig:
@@ -164,7 +164,7 @@ error: argument --environment: invalid choice: 'invalid' (choose from 'dev', 'st
 Use `combine_annotations()` to merge multiple features:
 
 ```python
-from dataclass_cli import combine_annotations, cli_short, cli_choices, cli_help
+from dataclass_config import combine_annotations, cli_short, cli_choices, cli_help
 
 @dataclass
 class AppConfig:
@@ -208,7 +208,7 @@ options:
 
 ```python
 from dataclasses import dataclass
-from dataclass_cli import build_config, cli_short, cli_choices, cli_help, combine_annotations
+from dataclass_config import build_config, cli_short, cli_choices, cli_help, combine_annotations
 
 @dataclass
 class DeploymentConfig:
@@ -290,7 +290,7 @@ $ python deploy.py --help
 Load string parameters from files using the `@filename` syntax:
 
 ```python
-from dataclass_cli import cli_file_loadable
+from dataclass_config import cli_file_loadable
 
 @dataclass
 class AppConfig:
@@ -350,7 +350,7 @@ config = build_config_from_cli(AppConfig, [
 ### Custom Help and Annotations
 
 ```python
-from dataclass_cli import cli_help, cli_exclude, cli_file_loadable
+from dataclass_config import cli_help, cli_exclude, cli_file_loadable
 
 @dataclass
 class ServerConfig:
@@ -526,7 +526,7 @@ Supports multiple configuration file formats:
 }
 ```
 
-### YAML (requires `pip install "dataclass-cli[yaml]"`)
+### YAML (requires `pip install "dataclass-config[yaml]"`)
 ```yaml
 name: MyApp
 count: 42
@@ -535,7 +535,7 @@ database:
   port: 5432
 ```
 
-### TOML (requires `pip install "dataclass-cli[toml]"`)
+### TOML (requires `pip install "dataclass-config[toml]"`)
 ```toml
 name = "MyApp"
 count = 42
@@ -560,7 +560,7 @@ Check the [`examples/`](examples/) directory for complete working examples:
 ```python
 from dataclasses import dataclass
 from typing import List
-from dataclass_cli import build_config, cli_short, cli_help, cli_exclude, cli_file_loadable, combine_annotations
+from dataclass_config import build_config, cli_short, cli_help, cli_exclude, cli_file_loadable, combine_annotations
 
 @dataclass
 class ServerConfig:
@@ -619,8 +619,8 @@ Contributions are welcome! Please see our [Contributing Guide](CONTRIBUTING.md) 
 ### Development Setup
 
 ```bash
-git clone https://github.com/bassmanitram/dataclass-cli.git
-cd dataclass-cli
+git clone https://github.com/bassmanitram/dataclass-config.git
+cd dataclass-config
 pip install -e ".[dev,all]"
 ```
 
@@ -635,9 +635,9 @@ pytest -v                       # Verbose output
 ### Code Formatting
 
 ```bash
-black dataclass_cli/ tests/
-flake8 dataclass_cli/ tests/
-mypy dataclass_cli/
+black dataclass_config/ tests/
+flake8 dataclass_config/ tests/
+mypy dataclass_config/
 ```
 
 ## License
@@ -650,7 +650,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and changes.
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/bassmanitram/dataclass-cli/issues)
+- **Issues**: [GitHub Issues](https://github.com/bassmanitram/dataclass-config/issues)
 - **Documentation**: This README and comprehensive docstrings
 - **Examples**: See the [examples/](examples/) directory
 
@@ -658,7 +658,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and changes.
 
 ```python
 from dataclasses import dataclass
-from dataclass_cli import (
+from dataclass_config import (
     build_config,                # Main function
     cli_short,                   # Short options: -n
     cli_choices,                 # Value validation

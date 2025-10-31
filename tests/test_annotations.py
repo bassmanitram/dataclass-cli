@@ -7,8 +7,8 @@ from typing import Optional
 
 import pytest
 
-from dataclass_cli import build_config, cli_exclude, cli_file_loadable, cli_help
-from dataclass_cli.annotations import (
+from dataclass_config import build_config, cli_exclude, cli_file_loadable, cli_help
+from dataclass_config.annotations import (
     get_cli_help,
     is_cli_excluded,
     is_cli_file_loadable,
