@@ -74,7 +74,7 @@ class TestFileLoadingFunctions:
 
         try:
             # Remove read permissions (skip on Windows where this doesn't work the same)
-            if os.name != 'nt':
+            if os.name != "nt":
                 os.chmod(temp_path, 0o000)
 
                 with pytest.raises(FileLoadingError, match="File is not readable"):
@@ -83,7 +83,7 @@ class TestFileLoadingFunctions:
                 pytest.skip("Permission handling differs on Windows")
         finally:
             # Restore permissions and clean up
-            if os.name != 'nt':
+            if os.name != "nt":
                 os.chmod(temp_path, 0o644)
             os.unlink(temp_path)
 
