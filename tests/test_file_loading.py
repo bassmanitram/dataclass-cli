@@ -46,12 +46,13 @@ class TestFileLoadingFunctions:
             test_content = "Hello, World!\nThis is a test file."
             f.write(test_content)
             f.flush()
+            temp_path = f.name
 
-            try:
-                content = load_file_content(f.name)
-                assert content == test_content
-            finally:
-                os.unlink(f.name)
+        try:
+            content = load_file_content(temp_path)
+            assert content == test_content
+        finally:
+            os.unlink(temp_path)
 
     def test_load_file_content_not_found(self):
         """Test error when file doesn't exist."""
@@ -69,17 +70,22 @@ class TestFileLoadingFunctions:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
             f.write("test content")
             f.flush()
+            temp_path = f.name
 
-            try:
-                # Remove read permissions
-                os.chmod(f.name, 0o000)
+        try:
+            # Remove read permissions (skip on Windows where this doesn't work the same)
+            if os.name != 'nt':
+                os.chmod(temp_path, 0o000)
 
                 with pytest.raises(FileLoadingError, match="File is not readable"):
-                    load_file_content(f.name)
-            finally:
-                # Restore permissions and clean up
-                os.chmod(f.name, 0o644)
-                os.unlink(f.name)
+                    load_file_content(temp_path)
+            else:
+                pytest.skip("Permission handling differs on Windows")
+        finally:
+            # Restore permissions and clean up
+            if os.name != 'nt':
+                os.chmod(temp_path, 0o644)
+            os.unlink(temp_path)
 
     def test_process_file_loadable_value_literal(self):
         """Test processing literal (non-file) values."""
@@ -95,12 +101,13 @@ class TestFileLoadingFunctions:
             test_content = "File content loaded successfully!"
             f.write(test_content)
             f.flush()
+            temp_path = f.name
 
-            try:
-                result = process_file_loadable_value(f"@{f.name}", "test_field")
-                assert result == test_content
-            finally:
-                os.unlink(f.name)
+        try:
+            result = process_file_loadable_value(f"@{temp_path}", "test_field")
+            assert result == test_content
+        finally:
+            os.unlink(temp_path)
 
     def test_process_file_loadable_value_empty_path(self):
         """Test error when file path is empty."""
@@ -144,34 +151,36 @@ class TestFileLoadableConfig:
             system_content = "You are an expert assistant with deep knowledge."
             system_file.write(system_content)
             system_file.flush()
+            system_path = system_file.name
 
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".txt", delete=False
-            ) as welcome_file:
-                welcome_content = "Welcome to our advanced AI system!"
-                welcome_file.write(welcome_content)
-                welcome_file.flush()
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False
+        ) as welcome_file:
+            welcome_content = "Welcome to our advanced AI system!"
+            welcome_file.write(welcome_content)
+            welcome_file.flush()
+            welcome_path = welcome_file.name
 
-                try:
-                    config = build_config_from_cli(
-                        FileLoadableConfig,
-                        [
-                            "--welcome-message",
-                            f"@{welcome_file.name}",
-                            "--name",
-                            "FileApp",
-                            "--system-prompt",
-                            f"@{system_file.name}",
-                        ],
-                    )
+        try:
+            config = build_config_from_cli(
+                FileLoadableConfig,
+                [
+                    "--welcome-message",
+                    f"@{welcome_path}",
+                    "--name",
+                    "FileApp",
+                    "--system-prompt",
+                    f"@{system_path}",
+                ],
+            )
 
-                    assert config.welcome_message == welcome_content
-                    assert config.name == "FileApp"
-                    assert config.system_prompt == system_content
+            assert config.welcome_message == welcome_content
+            assert config.name == "FileApp"
+            assert config.system_prompt == system_content
 
-                finally:
-                    os.unlink(system_file.name)
-                    os.unlink(welcome_file.name)
+        finally:
+            os.unlink(system_path)
+            os.unlink(welcome_path)
 
     def test_mixed_literal_and_file(self):
         """Test mixing literal values and file loading."""
@@ -179,26 +188,27 @@ class TestFileLoadableConfig:
             file_content = "Content loaded from file"
             f.write(file_content)
             f.flush()
+            temp_path = f.name
 
-            try:
-                config = build_config_from_cli(
-                    FileLoadableConfig,
-                    [
-                        "--welcome-message",
-                        f"@{f.name}",  # File
-                        "--name",
-                        "MixedApp",
-                        "--system-prompt",
-                        "Literal prompt text",  # Literal
-                    ],
-                )
+        try:
+            config = build_config_from_cli(
+                FileLoadableConfig,
+                [
+                    "--welcome-message",
+                    f"@{temp_path}",  # File
+                    "--name",
+                    "MixedApp",
+                    "--system-prompt",
+                    "Literal prompt text",  # Literal
+                ],
+            )
 
-                assert config.welcome_message == file_content
-                assert config.name == "MixedApp"
-                assert config.system_prompt == "Literal prompt text"
+            assert config.welcome_message == file_content
+            assert config.name == "MixedApp"
+            assert config.system_prompt == "Literal prompt text"
 
-            finally:
-                os.unlink(f.name)
+        finally:
+            os.unlink(temp_path)
 
     def test_default_values_with_file_loadable(self):
         """Test that default values work with file-loadable fields."""
@@ -243,24 +253,25 @@ class TestFileLoadableConfig:
             unicode_content = "Hello 世界! Café naïve résumé 🚀"
             f.write(unicode_content)
             f.flush()
+            temp_path = f.name
 
-            try:
-                config = build_config_from_cli(
-                    FileLoadableConfig,
-                    [
-                        "--welcome-message",
-                        "Welcome",
-                        "--name",
-                        "UnicodeApp",
-                        "--system-prompt",
-                        f"@{f.name}",
-                    ],
-                )
+        try:
+            config = build_config_from_cli(
+                FileLoadableConfig,
+                [
+                    "--welcome-message",
+                    "Welcome",
+                    "--name",
+                    "UnicodeApp",
+                    "--system-prompt",
+                    f"@{temp_path}",
+                ],
+            )
 
-                assert config.system_prompt == unicode_content
+            assert config.system_prompt == unicode_content
 
-            finally:
-                os.unlink(f.name)
+        finally:
+            os.unlink(temp_path)
 
 
 class TestFileLoadableEdgeCases:
@@ -272,24 +283,25 @@ class TestFileLoadableEdgeCases:
             # Write empty content
             f.write("")
             f.flush()
+            temp_path = f.name
 
-            try:
-                config = build_config_from_cli(
-                    FileLoadableConfig,
-                    [
-                        "--welcome-message",
-                        "Welcome",
-                        "--name",
-                        "EmptyApp",
-                        "--system-prompt",
-                        f"@{f.name}",
-                    ],
-                )
+        try:
+            config = build_config_from_cli(
+                FileLoadableConfig,
+                [
+                    "--welcome-message",
+                    "Welcome",
+                    "--name",
+                    "EmptyApp",
+                    "--system-prompt",
+                    f"@{temp_path}",
+                ],
+            )
 
-                assert config.system_prompt == ""
+            assert config.system_prompt == ""
 
-            finally:
-                os.unlink(f.name)
+        finally:
+            os.unlink(temp_path)
 
     def test_whitespace_only_file(self):
         """Test loading a file with only whitespace."""
@@ -297,24 +309,25 @@ class TestFileLoadableEdgeCases:
             whitespace_content = "   \n\t  \n  "
             f.write(whitespace_content)
             f.flush()
+            temp_path = f.name
 
-            try:
-                config = build_config_from_cli(
-                    FileLoadableConfig,
-                    [
-                        "--welcome-message",
-                        "Welcome",
-                        "--name",
-                        "WhitespaceApp",
-                        "--system-prompt",
-                        f"@{f.name}",
-                    ],
-                )
+        try:
+            config = build_config_from_cli(
+                FileLoadableConfig,
+                [
+                    "--welcome-message",
+                    "Welcome",
+                    "--name",
+                    "WhitespaceApp",
+                    "--system-prompt",
+                    f"@{temp_path}",
+                ],
+            )
 
-                assert config.system_prompt == whitespace_content
+            assert config.system_prompt == whitespace_content
 
-            finally:
-                os.unlink(f.name)
+        finally:
+            os.unlink(temp_path)
 
     def test_large_file(self):
         """Test loading a reasonably large file."""
@@ -323,25 +336,26 @@ class TestFileLoadableEdgeCases:
             large_content = "This is a test line.\n" * 50000
             f.write(large_content)
             f.flush()
+            temp_path = f.name
 
-            try:
-                config = build_config_from_cli(
-                    FileLoadableConfig,
-                    [
-                        "--welcome-message",
-                        "Welcome",
-                        "--name",
-                        "LargeApp",
-                        "--system-prompt",
-                        f"@{f.name}",
-                    ],
-                )
+        try:
+            config = build_config_from_cli(
+                FileLoadableConfig,
+                [
+                    "--welcome-message",
+                    "Welcome",
+                    "--name",
+                    "LargeApp",
+                    "--system-prompt",
+                    f"@{temp_path}",
+                ],
+            )
 
-                assert config.system_prompt == large_content
-                assert len(config.system_prompt) > 1000000  # ~1MB
+            assert config.system_prompt == large_content
+            assert len(config.system_prompt) > 1000000  # ~1MB
 
-            finally:
-                os.unlink(f.name)
+        finally:
+            os.unlink(temp_path)
 
 
 if __name__ == "__main__":
