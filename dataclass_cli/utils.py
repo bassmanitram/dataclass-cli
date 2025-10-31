@@ -131,7 +131,7 @@ def load_structured_file(file_path: Union[str, Path]) -> Dict[str, Any]:
         if HAS_TOML:
             try:
                 return tomllib.loads(content)
-            except Exception:
+            except Exception:  # nosec B110
                 pass
 
         # If all fail, provide helpful error

@@ -38,7 +38,7 @@ config = build_config(Config)
 ```
 
 ## Environment
-- Python version: [e.g. 3.10.0]  
+- Python version: [e.g. 3.10.0]
 - dataclass-cli version: [e.g. 0.1.0]
 - Operating System: [e.g. Ubuntu 22.04, Windows 11, macOS 13.0]
 - Command used: [e.g. `python app.py --name test`]

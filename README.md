@@ -113,7 +113,7 @@ database:
 ```
 
 ```python
-@dataclass 
+@dataclass
 class DatabaseConfig:
     host: str = "localhost"
     port: int = 5432
@@ -143,13 +143,13 @@ class ServerConfig:
     # Custom help text
     host: str = cli_help("Server bind address", default="127.0.0.1")
     port: int = cli_help("Server port number", default=8000)
-    
+
     # File-loadable with help
     ssl_cert: str = cli_file_loadable(cli_help("SSL certificate content"))
-    
+
     # Hidden from CLI
     secret_key: str = cli_exclude(default="auto-generated")
-    
+
     # Multiple values
     allowed_hosts: List[str] = cli_help("Allowed host headers", default_factory=list)
 ```
@@ -166,17 +166,17 @@ class MLConfig:
     model_name: str = cli_help("Model identifier")
     learning_rate: float = cli_help("Learning rate", default=0.001)
     epochs: int = cli_help("Training epochs", default=100)
-    
+
     # Complex types
     layer_sizes: List[int] = cli_help("Neural network layer sizes", default_factory=lambda: [128, 64])
     hyperparameters: Dict[str, Any] = cli_help("Model hyperparameters")
-    
+
     # Optional types
     checkpoint_path: Optional[Path] = cli_help("Path to model checkpoint")
-    
+
     # File-loadable configurations
     training_config: str = cli_file_loadable(cli_help("Training configuration"))
-    
+
     def __post_init__(self):
         # Custom validation
         if self.learning_rate <= 0:
@@ -289,7 +289,7 @@ config = build_config_from_cli(
     include_fields={'host', 'port', 'debug'}
 )
 
-# Exclude specific fields  
+# Exclude specific fields
 config = build_config_from_cli(
     MyConfig,
     exclude_fields={'internal_state', 'cache'}
@@ -362,18 +362,18 @@ class ServerConfig:
     host: str = cli_help("Server bind address", default="127.0.0.1")
     port: int = cli_help("Server port number", default=8000)
     workers: int = cli_help("Number of worker processes", default=1)
-    
+
     # Security settings
     ssl_cert: str = cli_file_loadable(cli_help("SSL certificate content"))
     ssl_key: str = cli_file_loadable(cli_help("SSL private key content"))
-    
+
     # Application settings
     debug: bool = cli_help("Enable debug mode", default=False)
     allowed_hosts: List[str] = cli_help("Allowed host headers", default_factory=list)
-    
+
     # Advanced configuration
     middleware_config: Dict[str, Any] = cli_help("Middleware configuration")
-    
+
     # Internal fields (hidden from CLI)
     _server_id: str = cli_exclude(default_factory=lambda: f"server-{os.getpid()}")
 
@@ -390,20 +390,20 @@ class MLTrainingConfig:
     # Model configuration
     model_type: str = cli_help("Model architecture type")
     model_config: Dict[str, Any] = cli_help("Model hyperparameters")
-    
+
     # Training parameters
     learning_rate: float = cli_help("Learning rate", default=0.001)
     batch_size: int = cli_help("Batch size", default=32)
     epochs: int = cli_help("Training epochs", default=100)
-    
+
     # Data configuration
     train_data: str = cli_help("Training data path")
     val_data: Optional[str] = cli_help("Validation data path")
-    
+
     # Training prompts/configs (file-loadable)
     system_prompt: str = cli_file_loadable(cli_help("System prompt for the model"))
     training_instructions: str = cli_file_loadable(cli_help("Training instructions"))
-    
+
     # Output configuration
     output_dir: str = cli_help("Output directory", default="./outputs")
     save_checkpoints: bool = cli_help("Save model checkpoints", default=True)
@@ -417,19 +417,19 @@ class MLTrainingConfig:
 ### Database Migration Tool
 
 ```python
-@dataclass 
+@dataclass
 class MigrationConfig:
     # Database connection
     database_url: str = cli_help("Database connection URL")
-    
+
     # Migration settings
     migration_dir: str = cli_help("Directory containing migration files", default="migrations")
     target_version: Optional[str] = cli_help("Target migration version")
-    
+
     # SQL customization (file-loadable)
     pre_migration_sql: str = cli_file_loadable(cli_help("Pre-migration SQL commands"), default="")
     post_migration_sql: str = cli_file_loadable(cli_help("Post-migration SQL commands"), default="")
-    
+
     # Execution options
     dry_run: bool = cli_help("Show what would be done without executing", default=False)
     force: bool = cli_help("Force migration even if dangerous", default=False)

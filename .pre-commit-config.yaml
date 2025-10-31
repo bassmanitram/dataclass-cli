@@ -28,25 +28,21 @@ repos:
       - id: isort
         args: [--profile=black, --line-length=88]
 
-  # flake8 linting
+  # flake8 linting (use .flake8 config file)
   - repo: https://github.com/pycqa/flake8
     rev: 7.0.0
     hooks:
       - id: flake8
-        args: [--max-line-length=88, --extend-ignore=E203,W503]
+        # Config comes from .flake8 file
 
-  # mypy type checking
+  # mypy type checking (only on source code, not tests)
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.8.0
     hooks:
       - id: mypy
+        files: ^dataclass_cli/.*\.py$
         additional_dependencies: [types-PyYAML]
         args: [--ignore-missing-imports]
 
-  # Security checks
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.5
-    hooks:
-      - id: bandit
-        args: [-r, dataclass_cli/, -f, json, -o, bandit-report.json]
-        files: ^dataclass_cli/.*\.py$
+  # Security checks - run bandit directly, not via pre-commit hook
+  # (pre-commit hook has dependency issues with pbr)

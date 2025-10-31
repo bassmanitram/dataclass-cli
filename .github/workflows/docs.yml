@@ -3,7 +3,7 @@ name: Documentation
 on:
   push:
     branches: [ main ]
-    paths: 
+    paths:
       - 'README.md'
       - 'docs/**'
       - 'examples/**'
@@ -32,10 +32,10 @@ jobs:
         python -c "
         import dataclass_cli
         import inspect
-        
+
         # Simple API documentation generation
         print('# API Documentation\\n')
-        
+
         # Document main functions
         for name in dir(dataclass_cli):
             if not name.startswith('_'):
@@ -59,13 +59,13 @@ jobs:
         # Test basic example from README
         from dataclasses import dataclass
         from dataclass_cli import build_config_from_cli
-        
+
         @dataclass
         class Config:
             name: str
             count: int = 10
             debug: bool = False
-        
+
         config = build_config_from_cli(Config, ['--name', 'test'])
         assert config.name == 'test'
         print('README examples work correctly')
