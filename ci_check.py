@@ -1,8 +1,5 @@
 #!/usr/bin/env python
-"""
-CI Environment Check Script
-Diagnoses common CI failures for dataclass-cli
-"""
+"""CI Environment Check Script - Diagnoses common CI failures for dataclass-cli."""
 
 import subprocess
 import sys
@@ -41,6 +38,7 @@ def run_check(name, command, critical=True):
 
 
 def main():
+    """Run all CI environment checks."""
     print("=" * 60)
     print("DATACLASS-CLI CI ENVIRONMENT CHECK")
     print("=" * 60)

@@ -101,14 +101,14 @@ class Config:
         cli_short('n'),
         cli_help("Application name")
     )
-    
+
     environment: str = combine_annotations(
         cli_short('e'),
         cli_choices(['dev', 'staging', 'prod']),
         cli_help("Deployment environment"),
         default='dev'
     )
-    
+
     debug: bool = combine_annotations(
         cli_short('d'),
         cli_help("Enable debug mode"),
@@ -141,20 +141,20 @@ from dataclass_cli import build_config, combine_annotations, cli_short, cli_choi
 @dataclass
 class ServerConfig:
     """My server configuration."""
-    
+
     # Required field
     name: str = combine_annotations(
         cli_short('n'),
         cli_help("Server name")
     )
-    
+
     # Optional with default
     port: int = combine_annotations(
         cli_short('p'),
         cli_help("Port number"),
         default=8000
     )
-    
+
     # Validated choice
     environment: str = combine_annotations(
         cli_short('e'),
@@ -162,14 +162,14 @@ class ServerConfig:
         cli_help("Environment"),
         default='dev'
     )
-    
+
     # Boolean flags
     debug: bool = combine_annotations(
         cli_short('d'),
         cli_help("Enable debug logging"),
         default=False
     )
-    
+
     reload: bool = combine_annotations(
         cli_short('r'),
         cli_help("Auto-reload on changes"),
@@ -178,7 +178,7 @@ class ServerConfig:
 
 if __name__ == "__main__":
     config = build_config(ServerConfig)
-    
+
     print(f"Starting {config.name}")
     print(f"  Environment: {config.environment}")
     print(f"  Port: {config.port}")

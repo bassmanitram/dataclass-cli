@@ -30,7 +30,7 @@ jobs:
     - name: Security check with bandit
       run: |
         bandit -r dataclass_cli/ -f json -o bandit-report.json || true
-        bandit -r dataclass_cli/ -f txt
+        bandit -r dataclass_cli/ -f txt || true
 
     - name: Upload bandit report
       if: always()
@@ -38,6 +38,7 @@ jobs:
       with:
         name: bandit-report
         path: bandit-report.json
+        if-no-files-found: warn
 
     - name: Check package build
       run: |

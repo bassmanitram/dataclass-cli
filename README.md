@@ -173,7 +173,7 @@ class AppConfig:
         cli_short('n'),
         cli_help("Application name")
     )
-    
+
     # Combine short + choices + help
     environment: str = combine_annotations(
         cli_short('e'),
@@ -181,7 +181,7 @@ class AppConfig:
         cli_help("Deployment environment"),
         default='dev'
     )
-    
+
     # Boolean with short + help
     debug: bool = combine_annotations(
         cli_short('d'),
@@ -213,19 +213,19 @@ from dataclass_cli import build_config, cli_short, cli_choices, cli_help, combin
 @dataclass
 class DeploymentConfig:
     """Configuration for application deployment."""
-    
+
     # Basic settings with short options
     name: str = combine_annotations(
         cli_short('n'),
         cli_help("Application name")
     )
-    
+
     version: str = combine_annotations(
         cli_short('v'),
         cli_help("Version to deploy"),
         default='latest'
     )
-    
+
     # Validated choices
     environment: str = combine_annotations(
         cli_short('e'),
@@ -233,28 +233,28 @@ class DeploymentConfig:
         cli_help("Target environment"),
         default='dev'
     )
-    
+
     region: str = combine_annotations(
         cli_short('r'),
         cli_choices(['us-east-1', 'us-west-2', 'eu-west-1']),
         cli_help("AWS region"),
         default='us-east-1'
     )
-    
+
     size: str = combine_annotations(
         cli_short('s'),
         cli_choices(['small', 'medium', 'large', 'xlarge']),
         cli_help("Instance size"),
         default='medium'
     )
-    
+
     # Boolean flags
     dry_run: bool = combine_annotations(
         cli_short('d'),
         cli_help("Perform dry run without deploying"),
         default=False
     )
-    
+
     notify: bool = combine_annotations(
         cli_short('N'),
         cli_help("Send deployment notifications"),
@@ -263,7 +263,7 @@ class DeploymentConfig:
 
 if __name__ == "__main__":
     config = build_config(DeploymentConfig)
-    
+
     print(f"Deploying {config.name} v{config.version}")
     print(f"Environment: {config.environment}")
     print(f"Region: {config.region}")
@@ -570,13 +570,13 @@ class ServerConfig:
         cli_help("Server bind address"),
         default="127.0.0.1"
     )
-    
+
     port: int = combine_annotations(
         cli_short('p'),
         cli_help("Server port number"),
         default=8000
     )
-    
+
     workers: int = combine_annotations(
         cli_short('w'),
         cli_help("Number of worker processes"),
@@ -593,7 +593,7 @@ class ServerConfig:
         cli_help("Enable debug mode"),
         default=False
     )
-    
+
     allowed_hosts: List[str] = cli_help("Allowed host headers", default_factory=list)
 
     # Internal fields (hidden from CLI)
@@ -672,16 +672,16 @@ from dataclass_cli import (
 class Config:
     # Simple field
     name: str
-    
+
     # With short option
     port: int = cli_short('p', default=8000)
-    
+
     # With choices
     env: str = cli_choices(['dev', 'prod'], default='dev')
-    
+
     # Boolean flag
     debug: bool = False  # Creates --debug and --no-debug
-    
+
     # Combine everything
     region: str = combine_annotations(
         cli_short('r'),
@@ -689,10 +689,10 @@ class Config:
         cli_help("AWS region"),
         default='us-east-1'
     )
-    
+
     # Hidden from CLI
     secret: str = cli_exclude(default="hidden")
-    
+
     # File-loadable
     config_text: str = cli_file_loadable(default="")
 
