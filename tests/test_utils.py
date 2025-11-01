@@ -3,8 +3,10 @@ Comprehensive tests for utils module.
 """
 
 import json
+import os
 import tempfile
 from pathlib import Path
+from unittest.mock import mock_open, patch
 
 import pytest
 
@@ -105,6 +107,20 @@ class TestLoadStructuredFile:
         finally:
             Path(temp_path).unlink()
 
+    def test_ioerror_during_read(self):
+        """Should raise ValueError for IOError during file read."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump({"test": "value"}, f)
+            temp_path = f.name
+
+        try:
+            # Mock open to raise IOError
+            with patch("builtins.open", side_effect=IOError("Permission denied")):
+                with pytest.raises(ValueError, match="Cannot read file"):
+                    load_structured_file(temp_path)
+        finally:
+            Path(temp_path).unlink()
+
     def test_accepts_path_object(self):
         """Should accept Path objects in addition to strings."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -129,8 +145,58 @@ class TestLoadStructuredFile:
         finally:
             Path(temp_path).unlink()
 
-    def test_unsupported_format_no_extension(self):
+    def test_unsupported_format_no_extension(self, monkeypatch):
         """Should raise ValueError for unparseable file without extension."""
+        import dataclass_config.utils
+
+        # Disable optional parsers to test the error path
+        monkeypatch.setattr(dataclass_config.utils, "HAS_YAML", False)
+        monkeypatch.setattr(dataclass_config.utils, "HAS_TOML", False)
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix="", delete=False) as f:
+            f.write("This is not valid JSON, YAML, or TOML content !!!")
+            temp_path = f.name
+
+        try:
+            with pytest.raises(
+                ValueError, match="Could not parse.*as any supported format"
+            ):
+                load_structured_file(temp_path)
+        finally:
+            Path(temp_path).unlink()
+
+    def test_unsupported_extension(self):
+        """Should try auto-detect for unknown extension."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            json.dump({"detected": "json"}, f)
+            temp_path = f.name
+
+        try:
+            # Should auto-detect as JSON
+            result = load_structured_file(temp_path)
+            assert result == {"detected": "json"}
+        finally:
+            Path(temp_path).unlink()
+
+    def test_unsupported_extension_invalid_content(self, monkeypatch):
+        """Should fail auto-detect for unknown extension with invalid content."""
+        import dataclass_config.utils
+
+        # Disable optional parsers to test the error path with only JSON
+        monkeypatch.setattr(dataclass_config.utils, "HAS_YAML", False)
+        monkeypatch.setattr(dataclass_config.utils, "HAS_TOML", False)
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".xyz", delete=False) as f:
+            f.write("random content that is not structured data")
+            temp_path = f.name
+
+        try:
+            with pytest.raises(
+                ValueError, match="Could not parse.*as any supported format"
+            ):
+                load_structured_file(temp_path)
+        finally:
+            Path(temp_path).unlink()
 
 
 class TestLoadStructuredFileYAML:
@@ -218,6 +284,36 @@ settings:
         finally:
             Path(temp_path).unlink()
 
+    def test_autodetect_yaml_without_extension(self):
+        """Should auto-detect YAML format without extension when YAML available."""
+        yaml_content = """
+name: test
+count: 42
+enabled: true
+"""
+        with tempfile.NamedTemporaryFile(mode="w", suffix="", delete=False) as f:
+            f.write(yaml_content)
+            temp_path = f.name
+
+        try:
+            result = load_structured_file(temp_path)
+            assert result == {"name": "test", "count": 42, "enabled": True}
+        finally:
+            Path(temp_path).unlink()
+
+    def test_autodetect_yaml_with_unknown_extension(self):
+        """Should auto-detect YAML with unknown extension."""
+        yaml_content = "key: value\nnested:\n  item: 123\n"
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".config", delete=False) as f:
+            f.write(yaml_content)
+            temp_path = f.name
+
+        try:
+            result = load_structured_file(temp_path)
+            assert result == {"key": "value", "nested": {"item": 123}}
+        finally:
+            Path(temp_path).unlink()
+
 
 class TestLoadStructuredFileTOML:
     """Tests for TOML support in load_structured_file."""
@@ -286,6 +382,42 @@ enabled = false
             assert result["database"]["pool_size"] == 10
             assert len(result["features"]) == 2
             assert result["features"][0]["name"] == "auth"
+        finally:
+            Path(temp_path).unlink()
+
+    def test_autodetect_toml_without_extension(self, monkeypatch):
+        """Should auto-detect TOML format without extension when TOML available."""
+        import dataclass_config.utils
+
+        # Disable YAML so TOML gets tried
+        monkeypatch.setattr(dataclass_config.utils, "HAS_YAML", False)
+
+        toml_content = 'name = "test"\ncount = 42\nenabled = true\n'
+        with tempfile.NamedTemporaryFile(mode="w", suffix="", delete=False) as f:
+            f.write(toml_content)
+            temp_path = f.name
+
+        try:
+            result = load_structured_file(temp_path)
+            assert result == {"name": "test", "count": 42, "enabled": True}
+        finally:
+            Path(temp_path).unlink()
+
+    def test_autodetect_toml_with_unknown_extension(self, monkeypatch):
+        """Should auto-detect TOML with unknown extension."""
+        import dataclass_config.utils
+
+        # Disable YAML so TOML gets tried
+        monkeypatch.setattr(dataclass_config.utils, "HAS_YAML", False)
+
+        toml_content = '[section]\nkey = "value"\nnumber = 123\n'
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".cfg", delete=False) as f:
+            f.write(toml_content)
+            temp_path = f.name
+
+        try:
+            result = load_structured_file(temp_path)
+            assert result == {"section": {"key": "value", "number": 123}}
         finally:
             Path(temp_path).unlink()
 
@@ -400,3 +532,118 @@ class TestLoadStructuredFileEdgeCases:
             except OSError:
                 # Skip on systems that don't support symlinks (Windows without privileges)
                 pytest.skip("Symlinks not supported on this system")
+
+
+class TestLoadStructuredFileAutoDetectionErrorPaths:
+    """Tests to cover error handling in auto-detection logic."""
+
+    @pytest.fixture(autouse=True)
+    def check_dependencies(self):
+        """Skip if YAML or TOML not available."""
+        try:
+            import yaml  # noqa: F401
+
+            try:
+                import tomllib  # noqa: F401
+            except ImportError:
+                import tomli  # noqa: F401
+        except ImportError:
+            pytest.skip("Both YAML and TOML needed for auto-detection error tests")
+
+    def test_autodetect_yaml_error_fallback_to_toml(self, monkeypatch):
+        """Should try TOML if YAML fails during auto-detection."""
+        import dataclass_config.utils
+
+        # Create content that is valid TOML but causes YAML error
+        toml_content = '[section]\nkey = "value"\n'
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".unknown", delete=False
+        ) as f:
+            f.write(toml_content)
+            temp_path = f.name
+
+        try:
+            # Mock yaml.safe_load to raise YAMLError
+            import yaml
+
+            original_safe_load = yaml.safe_load
+
+            def mock_yaml_load(content):
+                if content == toml_content:
+                    raise yaml.YAMLError("Mocked YAML error")
+                return original_safe_load(content)
+
+            monkeypatch.setattr(yaml, "safe_load", mock_yaml_load)
+
+            # Should fall back to TOML
+            result = load_structured_file(temp_path)
+            assert result == {"section": {"key": "value"}}
+        finally:
+            Path(temp_path).unlink()
+
+    def test_autodetect_all_formats_fail(self, monkeypatch):
+        """Should provide helpful error when all formats fail during auto-detection."""
+        import json
+
+        import yaml
+
+        import dataclass_config.utils
+
+        # Mock all parsers to fail
+        monkeypatch.setattr(
+            json,
+            "loads",
+            lambda x: (_ for _ in ()).throw(json.JSONDecodeError("mock", x, 0)),
+        )
+        monkeypatch.setattr(
+            yaml, "safe_load", lambda x: (_ for _ in ()).throw(yaml.YAMLError("mock"))
+        )
+
+        try:
+            import tomllib
+
+            monkeypatch.setattr(
+                tomllib, "loads", lambda x: (_ for _ in ()).throw(ValueError("mock"))
+            )
+        except ImportError:
+            try:
+                import tomli
+
+                monkeypatch.setattr(
+                    tomli, "loads", lambda x: (_ for _ in ()).throw(ValueError("mock"))
+                )
+            except ImportError:
+                pass
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".unknown", delete=False
+        ) as f:
+            f.write("some content")
+            temp_path = f.name
+
+        try:
+            with pytest.raises(
+                ValueError, match="Could not parse.*as any supported format"
+            ):
+                load_structured_file(temp_path)
+        finally:
+            Path(temp_path).unlink()
+
+    def test_error_message_lists_available_formats(self, monkeypatch):
+        """Error message should list available formats."""
+        import dataclass_config.utils
+
+        # Test with only JSON available
+        monkeypatch.setattr(dataclass_config.utils, "HAS_YAML", False)
+        monkeypatch.setattr(dataclass_config.utils, "HAS_TOML", False)
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".xyz", delete=False) as f:
+            f.write("invalid")
+            temp_path = f.name
+
+        try:
+            with pytest.raises(ValueError, match="Supported formats: JSON"):
+                load_structured_file(temp_path)
+        finally:
+            Path(temp_path).unlink()

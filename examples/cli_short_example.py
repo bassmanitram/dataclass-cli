@@ -39,7 +39,7 @@ class ServerConfig:
     workers: int = cli_help("Number of worker processes", default=4)
 
 
-def main():
+def main() -> None:
     """Main application entry point."""
     print("CLI Short Options Example")
     print("=" * 40)

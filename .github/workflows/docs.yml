@@ -7,7 +7,7 @@ on:
       - 'README.md'
       - 'docs/**'
       - 'examples/**'
-      - 'dataclass_cli/**'
+      - 'dataclass_config/**'
 
 jobs:
   update-docs:
@@ -30,16 +30,16 @@ jobs:
       run: |
         # Generate docstring-based API docs if needed
         python -c "
-        import dataclass_cli
+        import dataclass_config
         import inspect
 
         # Simple API documentation generation
         print('# API Documentation\\n')
 
         # Document main functions
-        for name in dir(dataclass_cli):
+        for name in dir(dataclass_config):
             if not name.startswith('_'):
-                obj = getattr(dataclass_cli, name)
+                obj = getattr(dataclass_config, name)
                 if callable(obj) and hasattr(obj, '__doc__') and obj.__doc__:
                     print(f'## {name}\\n')
                     print(obj.__doc__.strip())
@@ -58,7 +58,7 @@ jobs:
         python -c "
         # Test basic example from README
         from dataclasses import dataclass
-        from dataclass_cli import build_config_from_cli
+        from dataclass_config import build_config_from_cli
 
         @dataclass
         class Config:

@@ -63,7 +63,7 @@ class DeploymentConfig:
     )
 
 
-def main():
+def main() -> None:
     """Main application entry point."""
     print("CLI Choices Example - Validated Deployment")
     print("=" * 50)

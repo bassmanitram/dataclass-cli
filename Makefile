@@ -1,19 +1,22 @@
-.PHONY: install test lint format clean build publish dev-install help
+.PHONY: install test lint format clean build publish dev-install help coverage
 
 # Default target
 help:
 	@echo "Available targets:"
-	@echo "  install     - Install package in development mode"
-	@echo "  dev-install - Install with all development dependencies"
-	@echo "  test        - Run tests"
-	@echo "  test-cov    - Run tests with coverage"
-	@echo "  lint        - Run linting (black, isort, mypy, flake8)"
-	@echo "  format      - Format code (black, isort)"
-	@echo "  clean       - Clean build artifacts"
-	@echo "  build       - Build package"
-	@echo "  publish     - Publish to PyPI (requires PYPI_TOKEN)"
-	@echo "  examples    - Run example scripts"
-	@echo "  pre-commit  - Install and run pre-commit hooks"
+	@echo "  install      - Install package in development mode"
+	@echo "  dev-install  - Install with all development dependencies"
+	@echo "  test         - Run tests"
+	@echo "  coverage     - Run tests with coverage report"
+	@echo "  coverage-html - Run tests with coverage and open HTML report"
+	@echo "  lint         - Run linting (black, isort, mypy, flake8)"
+	@echo "  format       - Format code (black, isort)"
+	@echo "  clean        - Clean build artifacts"
+	@echo "  build        - Build package"
+	@echo "  publish      - Publish to PyPI (requires PYPI_TOKEN)"
+	@echo "  examples     - Run example scripts"
+	@echo "  pre-commit   - Install and run pre-commit hooks"
+	@echo "  setup        - Complete development environment setup"
+	@echo "  check        - Run all checks (lint + test + examples)"
 
 # Install package in development mode
 install:
@@ -23,25 +26,29 @@ install:
 dev-install:
 	pip install -e ".[dev,all]"
 
-# Run tests
+# Run tests (coverage is now automatic via pyproject.toml)
 test:
 	pytest tests/
 
-# Run tests with coverage
-test-cov:
-	pytest tests/ --cov=dataclass_cli --cov-report=html --cov-report=term-missing
+# Run tests with detailed coverage report
+coverage:
+	./scripts/coverage_report.sh
+
+# Run tests with coverage and open HTML report
+coverage-html:
+	./scripts/coverage_report.sh --open
 
 # Run linting
 lint:
-	black --check dataclass_cli/ tests/ examples/
-	isort --check-only dataclass_cli/ tests/ examples/
-	mypy dataclass_cli/
-	flake8 dataclass_cli/
+	black --check dataclass_config/ tests/ examples/
+	isort --check-only dataclass_config/ tests/ examples/
+	mypy dataclass_config/
+	flake8 dataclass_config/
 
 # Format code
 format:
-	black dataclass_cli/ tests/ examples/
-	isort dataclass_cli/ tests/ examples/
+	black dataclass_config/ tests/ examples/
+	isort dataclass_config/ tests/ examples/
 
 # Clean build artifacts
 clean:
@@ -51,6 +58,7 @@ clean:
 	rm -rf .pytest_cache/
 	rm -rf htmlcov/
 	rm -rf .coverage
+	rm -rf coverage.xml
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 

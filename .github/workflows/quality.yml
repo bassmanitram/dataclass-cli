@@ -29,8 +29,8 @@ jobs:
 
     - name: Security check with bandit
       run: |
-        bandit -r dataclass_cli/ -f json -o bandit-report.json || true
-        bandit -r dataclass_cli/ -f txt || true
+        bandit -r dataclass_config/ -f json -o bandit-report.json || true
+        bandit -r dataclass_config/ -f txt || true
 
     - name: Upload bandit report
       if: always()
@@ -50,4 +50,4 @@ jobs:
     - name: Test package installation
       run: |
         pip install dist/*.whl
-        python -c "import dataclass_cli; print('Package installed successfully')"
+        python -c "import dataclass_config; print('Package installed successfully')"

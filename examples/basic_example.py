@@ -26,7 +26,7 @@ class Config:
     debug: bool = False
 
 
-def main():
+def main() -> None:
     """Main application entry point."""
     print("Basic Dataclass CLI Example")
     print("=" * 30)

@@ -172,7 +172,7 @@ def format_config(config: DeploymentConfig) -> str:
     return "\n".join(lines)
 
 
-def main():
+def main() -> None:
     """Run deployment with configuration from CLI."""
     config = build_config(DeploymentConfig)
 

@@ -50,7 +50,7 @@ class BuildConfig:
     )
 
 
-def main():
+def main() -> None:
     """Run example build pipeline."""
     config = build_config(BuildConfig)
 

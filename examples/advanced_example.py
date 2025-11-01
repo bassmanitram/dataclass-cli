@@ -64,7 +64,7 @@ class ServerConfig:
     _startup_time: str = cli_exclude(default_factory=lambda: "auto-generated")
 
 
-def main():
+def main() -> None:
     """Main application entry point."""
     print("Advanced Dataclass CLI Example")
     print("=" * 35)

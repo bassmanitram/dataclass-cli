@@ -25,14 +25,14 @@ jobs:
 
     - name: Run comprehensive tests
       run: |
-        pytest tests/ -v --cov=dataclass_cli --cov-report=term-missing
+        pytest tests/ -v --cov=dataclass_config --cov-report=term-missing
 
     - name: Check code quality
       run: |
-        black --check dataclass_cli/ tests/ examples/
-        isort --check-only dataclass_cli/ tests/ examples/
-        mypy dataclass_cli/
-        flake8 dataclass_cli/
+        black --check dataclass_config/ tests/ examples/
+        isort --check-only dataclass_config/ tests/ examples/
+        mypy dataclass_config/
+        flake8 dataclass_config/
 
     - name: Test examples
       run: |
@@ -46,8 +46,8 @@ jobs:
         twine check dist/*
         pip install dist/*.whl
         python -c "
-        import dataclass_cli
-        print(f'Package version: {dataclass_cli.__version__}')
+        import dataclass_config
+        print(f'Package version: {dataclass_config.__version__}')
         print('All imports successful')
         "
 
@@ -61,9 +61,9 @@ jobs:
         echo "" >> status-report.md
         echo "## Package Information" >> status-report.md
         python -c "
-        import dataclass_cli
-        print(f'Version: {dataclass_cli.__version__}')
-        print(f'Available functions: {len([x for x in dir(dataclass_cli) if not x.startswith(\"_\")])}')
+        import dataclass_config
+        print(f'Version: {dataclass_config.__version__}')
+        print(f'Available functions: {len([x for x in dir(dataclass_config) if not x.startswith(\"_\")])}')
         " >> status-report.md
 
     - name: Upload status report

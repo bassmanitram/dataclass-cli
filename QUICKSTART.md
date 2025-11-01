@@ -49,7 +49,30 @@ config = build_config(Config)
 $ python app.py -n myapp -p 9000
 ```
 
-## 3. Boolean Flags
+## 3. Positional Arguments
+
+**Use `cli_positional()` for arguments without `--` prefix:**
+
+```python
+from dataclass_config import cli_positional
+
+@dataclass
+class CopyCommand:
+    source: str = cli_positional(help="Source file")
+    dest: str = cli_positional(help="Destination file")
+    recursive: bool = cli_short('r', default=False)
+
+config = build_config(CopyCommand)
+```
+
+```bash
+$ python cp.py source.txt destination.txt -r
+# source="source.txt", dest="destination.txt", recursive=True
+```
+
+**Positional arguments are great for required inputs like filenames!**
+
+## 4. Boolean Flags
 
 **Booleans automatically get `--flag` and `--no-flag`:**
 
@@ -68,7 +91,7 @@ $ python app.py -n myapp -d              # Enable debug
 $ python app.py -n myapp --no-optimize   # Disable optimize
 ```
 
-## 4. Validate Values
+## 5. Validate Values
 
 **Use `cli_choices()` to restrict values:**
 
@@ -88,20 +111,28 @@ $ python app.py -n myapp --environment prod   # ✓ Valid
 $ python app.py -n myapp --environment test   # ✗ Error: invalid choice
 ```
 
-## 5. Combine Everything
+## 6. Combine Everything
 
 **Use `combine_annotations()` to use multiple features together:**
 
 ```python
-from dataclass_config import combine_annotations, cli_short, cli_choices, cli_help
+from dataclass_config import combine_annotations, cli_short, cli_choices, cli_help, cli_positional
 
 @dataclass
 class Config:
+    # Positional argument
+    input_file: str = combine_annotations(
+        cli_positional(),
+        cli_help("Input file to process")
+    )
+
+    # Short + help
     name: str = combine_annotations(
         cli_short('n'),
         cli_help("Application name")
     )
 
+    # Short + choices + help
     environment: str = combine_annotations(
         cli_short('e'),
         cli_choices(['dev', 'staging', 'prod']),
@@ -109,6 +140,7 @@ class Config:
         default='dev'
     )
 
+    # Boolean with short + help
     debug: bool = combine_annotations(
         cli_short('d'),
         cli_help("Enable debug mode"),
@@ -120,10 +152,13 @@ config = build_config(Config)
 
 ```bash
 # Concise and powerful
-$ python app.py -n myapp -e prod -d
+$ python app.py input.txt -n myapp -e prod -d
 
 # Help is automatically generated
 $ python app.py --help
+positional arguments:
+  input_file            Input file to process
+
 options:
   -n NAME, --name NAME  Application name
   -e {dev,staging,prod}, --environment {dev,staging,prod}
@@ -136,7 +171,8 @@ options:
 
 ```python
 from dataclasses import dataclass
-from dataclass_config import build_config, combine_annotations, cli_short, cli_choices, cli_help
+from typing import List
+from dataclass_config import build_config, combine_annotations, cli_short, cli_choices, cli_help, cli_positional
 
 @dataclass
 class ServerConfig:
@@ -205,11 +241,49 @@ $ python server.py --help
 ## Next Steps
 
 - Read the full [README.md](README.md) for advanced features
+- Check the [docs/API.md](docs/API.md) for complete API documentation
 - Check out [examples/](examples/) for more complete examples
 - Learn about file-loadable parameters for loading content from files
 - Explore configuration file merging for complex setups
 
 ## Common Patterns
+
+### File Copy Tool
+
+```python
+from dataclass_config import cli_positional
+
+@dataclass
+class CopyConfig:
+    source: str = cli_positional(help="Source file")
+    dest: str = cli_positional(help="Destination file")
+    recursive: bool = cli_short('r', default=False)
+    verbose: bool = cli_short('v', default=False)
+
+config = build_config(CopyConfig)
+```
+
+```bash
+$ python cp.py source.txt dest.txt -r -v
+```
+
+### Git-Style Commands
+
+```python
+from typing import List
+
+@dataclass
+class GitCommit:
+    command: str = cli_positional(help="Git command")
+    files: List[str] = cli_positional(nargs='+', help="Files to commit")
+    message: str = cli_short('m', default="")
+
+config = build_config(GitCommit)
+```
+
+```bash
+$ python git.py commit file1.py file2.py file3.py -m "Add feature"
+```
 
 ### Deploy Script
 
@@ -218,14 +292,14 @@ $ python server.py --help
 class DeployConfig:
     app: str = cli_short('a')
     version: str = cli_short('v', default='latest')
-    environment: str = cli_short('e', choices=['dev', 'prod'], default='dev')
+    environment: str = cli_choices(['dev', 'prod'], default='dev')
     dry_run: bool = cli_short('d', default=False)
 
 config = build_config(DeployConfig)
 ```
 
 ```bash
-$ python deploy.py -a myapp -v 2.1.0 -e prod
+$ python deploy.py -a myapp -v 2.1.0 --environment prod
 $ python deploy.py -a myapp -d  # Dry run
 ```
 
@@ -268,4 +342,21 @@ $ python build.py -p myapp --no-test            # Skip tests
 $ python build.py -p myapp -d -v                # Deploy with verbose
 ```
 
+## Key Features Summary
+
+✅ **Automatic CLI generation** from dataclasses  
+✅ **Short options** (`-n`) and long options (`--name`)  
+✅ **Positional arguments** for required inputs  
+✅ **Boolean flags** with `--flag` and `--no-flag`  
+✅ **Value validation** with `cli_choices()`  
+✅ **Type-safe** parsing for all Python types  
+✅ **Combine features** with `combine_annotations()`  
+✅ **File loading** with `@filename` syntax  
+✅ **Configuration files** (JSON, YAML, TOML)  
+
 That's it! You now know enough to build powerful CLIs with dataclass-config. 🚀
+
+For more details, see:
+- [README.md](README.md) - Full documentation
+- [docs/API.md](docs/API.md) - Complete API reference
+- [examples/](examples/) - Working code examples

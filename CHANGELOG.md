@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
 ## [1.0.0] - 2025-01-31
 
 ### 🎉 First Stable Release
@@ -14,6 +15,7 @@ This is the first production-ready release of dataclass-config. The API is now s
 #### Core Features
 - **Zero-boilerplate CLI generation** from Python dataclasses
 - **Type-safe argument parsing** for all standard Python types (`str`, `int`, `float`, `bool`, `List`, `Dict`, `Optional`, etc.)
+- **Positional arguments** - Support for positional args with `cli_positional()` annotation and all nargs variants
 - **Short options** - Concise `-n` flags with `cli_short()` annotation
 - **Boolean flags** - Proper `--flag` and `--no-flag` boolean handling
 - **Value validation** - Restrict values with `cli_choices()` annotation
@@ -23,10 +25,11 @@ This is the first production-ready release of dataclass-config. The API is now s
 - **Flexible annotations** - Combine multiple features with `combine_annotations()`
 - **Custom help text** - Add descriptions with `cli_help()` annotation
 - **Field control** - Exclude/include fields with `cli_exclude()` and `cli_include()`
+- **Positional list validation** - Enforces constraints to prevent ambiguous CLIs
 
 #### Quality Metrics
-- **Test Coverage**: 89.2% code coverage across comprehensive test suite
-- **Test Files**: 9 test modules with extensive unit and integration tests
+- **Test Coverage**: ~92% code coverage across comprehensive test suite
+- **Test Files**: 10 test modules with extensive unit and integration tests (216 total tests)
 - **Code Quality**: All linting, type checking, and security scans passing
 - **Python Support**: Python 3.8, 3.9, 3.10, 3.11, 3.12
 - **Dependencies**: Minimal - only `typing-extensions` required

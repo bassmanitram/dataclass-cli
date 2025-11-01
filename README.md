@@ -14,6 +14,7 @@ Generate command-line interfaces from Python dataclasses.
 
 - **Automatic CLI Generation** - Generate CLI from dataclass definitions
 - **Type-Safe Parsing** - Type-aware argument parsing for standard Python types
+- **Positional Arguments** - Support for positional args with `cli_positional()`
 - **Short Options** - Concise `-n` flags in addition to `--name`
 - **Boolean Flags** - Proper `--flag` and `--no-flag` boolean handling
 - **Value Validation** - Restrict values with `cli_choices()`
@@ -158,6 +159,106 @@ $ python deploy.py --environment prod --region us-west-2
 $ python deploy.py --environment invalid
 error: argument --environment: invalid choice: 'invalid' (choose from 'dev', 'staging', 'prod')
 ```
+
+
+
+### Positional Arguments
+
+Add positional arguments that don't require `--` prefixes:
+
+```python
+from dataclass_config import cli_positional
+
+@dataclass
+class CopyCommand:
+    source: str = cli_positional(help="Source file")
+    dest: str = cli_positional(help="Destination file")
+    recursive: bool = cli_short('r', default=False)
+```
+
+```bash
+# Positional arguments are matched by position
+$ python cp.py source.txt destination.txt -r
+
+# Optional flags can appear anywhere
+$ python cp.py -r source.txt destination.txt
+```
+
+#### Variable Number of Arguments
+
+Use `nargs` to accept multiple values:
+
+```python
+from typing import List
+
+@dataclass
+class GitCommit:
+    command: str = cli_positional(help="Git command")
+    files: List[str] = cli_positional(nargs='+', help="Files to commit")
+    message: str = cli_short('m', default="")
+
+# CLI: python git.py commit file1.py file2.py file3.py -m "Add feature"
+```
+
+**nargs Options:**
+- `None` (default) - Exactly one value (required)
+- `'?'` - Zero or one value (optional)
+- `'*'` - Zero or more values (optional list)
+- `'+'` - One or more values (required list)
+- `int` (e.g., `2`) - Exact count (required list)
+
+#### Optional Positional Arguments
+
+```python
+@dataclass
+class Convert:
+    input_file: str = cli_positional(help="Input file")
+    output_file: str = cli_positional(
+        nargs='?',
+        default='stdout',
+        help="Output file (default: stdout)"
+    )
+    format: str = cli_short('f', default='json')
+```
+
+```bash
+# With output file
+$ python convert.py input.json output.yaml -f yaml
+
+# Without output file (uses default)
+$ python convert.py input.json -f xml
+```
+
+#### ⚠️ Positional List Constraints
+
+Positional arguments with variable length have important constraints:
+
+**Rules:**
+1. At most ONE positional field can use `nargs='*'` or `'+'`
+2. If present, the positional list must be the LAST positional argument
+3. For multiple lists, use optional arguments with flags
+
+**Valid:**
+```python
+@dataclass
+class Valid:
+    command: str = cli_positional()          # First
+    files: List[str] = cli_positional(nargs='+')  # Last (OK!)
+    exclude: List[str] = cli_short('e', default_factory=list)  # Optional list with flag (OK!)
+```
+
+**Invalid:**
+```python
+@dataclass
+class Invalid:
+    files: List[str] = cli_positional(nargs='+')  # Positional list
+    output: str = cli_positional()                 # ERROR: positional after list!
+
+# ConfigBuilderError: Positional list argument must be last.
+# Fix: Make output an optional argument with a flag
+```
+
+**Why?** Positional lists are greedy and consume all remaining values. The parser can't determine where one positional list ends and another begins without `--` flags.
 
 ### Combining Annotations
 
@@ -401,6 +502,10 @@ class MLConfig:
 
 ## API Reference
 
+> **📖 Full API Documentation:** See [docs/API.md](docs/API.md) for complete API reference with detailed examples.
+
+### Quick API Reference
+
 ### Main Functions
 
 #### `build_config(config_class, args=None)`
@@ -464,6 +569,34 @@ Add custom help text to CLI arguments.
 ```python
 field: str = cli_help("Custom help text", default="default_value")
 ```
+
+
+
+#### `cli_positional(nargs=None, metavar=None, **kwargs)`
+
+Mark a field as a positional CLI argument (no `--` prefix required).
+
+```python
+# Required positional
+source: str = cli_positional(help="Source file")
+
+# Optional positional
+output: str = cli_positional(nargs='?', default='stdout')
+
+# Variable number (list)
+files: List[str] = cli_positional(nargs='+', help="Files")
+
+# Exact count
+coords: List[float] = cli_positional(nargs=2, metavar='X Y')
+
+# Combined with other annotations
+input: str = combine_annotations(
+    cli_positional(),
+    cli_help("Input file path")
+)
+```
+
+**Important:** At most one positional can use `nargs='*'` or `'+'`, and it must be the last positional.
 
 #### `cli_exclude(**kwargs)`
 
@@ -549,10 +682,11 @@ port = 5432
 
 Check the [`examples/`](examples/) directory for complete working examples:
 
+- **`positional_example.py`** - Positional arguments and variable length args
 - **`boolean_flags_example.py`** - Boolean flags with `--flag` and `--no-flag`
 - **`cli_choices_example.py`** - Value validation with choices
 - **`cli_short_example.py`** - Short option flags
-- **`combined_features_example.py`** - All features together
+- **`all_features_example.py`** - All features together
 - And more...
 
 ### Web Server Configuration
@@ -624,25 +758,66 @@ cd dataclass-config
 pip install -e ".[dev,all]"
 ```
 
+### Development Setup
+
+```bash
+git clone https://github.com/bassmanitram/dataclass-config.git
+cd dataclass-config
+pip install -e ".[dev,all]"
+make setup  # Install dev dependencies and pre-commit hooks
+```
+
 ### Running Tests
 
 ```bash
-pytest                          # Run all tests
-pytest tests/test_cli_short.py  # Run specific test file
-pytest -v                       # Verbose output
+# Run all tests (coverage is automatic)
+pytest
+make test
+
+# Run tests with detailed coverage report
+make coverage
+
+# Run tests with coverage and open HTML report
+make coverage-html
+
+# Run specific test file
+pytest tests/test_cli_short.py
+
+# Verbose output
+pytest -v
 ```
+
+### Code Coverage
+
+This project maintains **94%+ code coverage**. Coverage reports are generated automatically when running tests.
+
+- **Quick check**: `make coverage`
+- **Detailed report**: See `htmlcov/index.html`  
+- **Coverage docs**: [COVERAGE.md](COVERAGE.md)
+
+All code changes should maintain or improve coverage. The minimum required coverage is 90%.
 
 ### Code Formatting
 
 ```bash
-black dataclass_config/ tests/
+# Format code
+make format
+black dataclass_config/ tests/ examples/
+isort dataclass_config/ tests/ examples/
+
+# Check formatting
+make lint
+black --check dataclass_config/ tests/
 flake8 dataclass_config/ tests/
 mypy dataclass_config/
 ```
 
-## License
+### Full Check (like CI)
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+```bash
+# Run all checks: linting, tests, and examples
+make check
+```
 
 ## Changelog
 
@@ -661,6 +836,7 @@ from dataclasses import dataclass
 from dataclass_config import (
     build_config,                # Main function
     cli_short,                   # Short options: -n
+    cli_positional,              # Positional args
     cli_choices,                 # Value validation
     cli_help,                    # Custom help text
     cli_exclude,                 # Hide from CLI
@@ -672,6 +848,9 @@ from dataclass_config import (
 class Config:
     # Simple field
     name: str
+
+    # Positional argument
+    input_file: str = cli_positional()
 
     # With short option
     port: int = cli_short('p', default=8000)

@@ -8,7 +8,7 @@ with optional base configuration files for any dataclass.
 import argparse
 import json
 import sys
-from dataclasses import fields, is_dataclass
+from dataclasses import MISSING, fields, is_dataclass
 from typing import Any, Callable, Dict, List, Optional, Set, Type, Union
 
 # Import typing utilities with Python 3.8+ compatibility
@@ -21,7 +21,15 @@ try:
 except ImportError:
     from typing_extensions import get_args, get_origin, get_type_hints  # type: ignore[assignment,no-redef]
 
-from .annotations import get_cli_choices, get_cli_help, get_cli_short, is_cli_excluded
+from .annotations import (
+    get_cli_choices,
+    get_cli_help,
+    get_cli_positional_metavar,
+    get_cli_positional_nargs,
+    get_cli_short,
+    is_cli_excluded,
+    is_cli_positional,
+)
 from .exceptions import ConfigBuilderError, ConfigurationError
 from .file_loading import process_file_loadable_value
 from .utils import load_structured_file
@@ -124,6 +132,16 @@ class GenericConfigBuilder:
             is_list = origin is list
             is_dict = origin is dict
 
+            # Extract default value or factory
+            has_default = field_obj.default is not MISSING
+            has_default_factory = field_obj.default_factory is not MISSING
+            default_value = None
+            if has_default:
+                default_value = field_obj.default
+            elif has_default_factory and callable(field_obj.default_factory):
+                # Call factory to get default value
+                default_value = field_obj.default_factory()
+
             field_info = {
                 "type": field_type,
                 "origin": origin,
@@ -131,11 +149,8 @@ class GenericConfigBuilder:
                 "is_optional": is_optional,
                 "is_list": is_list,
                 "is_dict": is_dict,
-                "default": (
-                    field_obj.default
-                    if field_obj.default is not field_obj.default_factory
-                    else None
-                ),
+                "default": default_value,
+                "has_default": has_default or has_default_factory,
                 "cli_name": self._field_to_cli_name(field_obj.name),
                 "override_name": self._field_to_override_name(field_obj.name),
                 "field_obj": field_obj,  # Include field object for metadata access
@@ -145,7 +160,67 @@ class GenericConfigBuilder:
             if self._should_include_field(field_obj.name, field_info):
                 fields_info[field_obj.name] = field_info
 
+        # Validate positional arguments
+        self._validate_positional_arguments(fields_info)
+
         return fields_info
+
+    def _validate_positional_arguments(
+        self, fields_info: Dict[str, Dict[str, Any]]
+    ) -> None:
+        """
+        Validate positional argument constraints.
+
+        Rules:
+        1. At most ONE positional field can use nargs='*' or '+'
+        2. If present, positional list must be the LAST positional argument
+
+        Raises:
+            ConfigBuilderError: If validation fails
+        """
+        positional_fields = []
+        positional_list_fields = []
+
+        for field_name, info in fields_info.items():
+            if is_cli_positional(info):
+                positional_fields.append((field_name, info))
+
+                nargs = get_cli_positional_nargs(info)
+                # Check if this is a "list" positional (greedy)
+                if nargs in ("*", "+"):
+                    positional_list_fields.append((field_name, nargs))
+
+        # Rule 1: At most one positional list
+        if len(positional_list_fields) > 1:
+            field_names = [
+                f"'{name}' (nargs='{nargs}')" for name, nargs in positional_list_fields
+            ]
+            raise ConfigBuilderError(
+                f"Only one positional list argument allowed, found {len(positional_list_fields)}: "
+                f"{', '.join(field_names)}. Use optional lists with flags for additional lists:\n"
+                f"  Example: field: List[str] = cli_short('f')  # Use --field instead"
+            )
+
+        # Rule 2: Positional list must be last
+        if positional_list_fields:
+            list_field_name, list_nargs = positional_list_fields[0]
+            list_field_index = next(
+                i
+                for i, (name, _) in enumerate(positional_fields)
+                if name == list_field_name
+            )
+
+            # Check if there are any positionals after the list
+            if list_field_index < len(positional_fields) - 1:
+                later_fields = [
+                    name for name, _ in positional_fields[list_field_index + 1 :]
+                ]
+                raise ConfigBuilderError(
+                    f"Positional list argument '{list_field_name}' (nargs='{list_nargs}') must be last.\n"
+                    f"Found positional argument(s) after it: {', '.join([repr(f) for f in later_fields])}.\n"
+                    f"Consider making them optional arguments with flags:\n"
+                    f"  Example: {later_fields[0]}: str = cli_short('{later_fields[0][0]}', default='value')"
+                )
 
     def _field_to_cli_name(self, field_name: str) -> str:
         """Convert field name to CLI argument name."""
@@ -178,9 +253,68 @@ class GenericConfigBuilder:
         # Base config file argument
         parser.add_argument(f"--{base_config_name}", type=str, help=base_config_help)
 
-        # Add arguments for each config field (filtered)
+        # IMPORTANT: Add positional arguments first (argparse requirement)
         for field_name, info in self._config_fields.items():
-            self._add_field_argument(parser, field_name, info)
+            if is_cli_positional(info):
+                self._add_positional_argument(parser, field_name, info)
+
+        # Then add optional arguments
+        for field_name, info in self._config_fields.items():
+            if not is_cli_positional(info):
+                self._add_field_argument(parser, field_name, info)
+
+    def _add_positional_argument(
+        self, parser: argparse.ArgumentParser, field_name: str, info: Dict[str, Any]
+    ) -> None:
+        """Add positional argument to parser."""
+        # Positional arguments use the field name directly (no -- prefix)
+        arg_name = field_name
+
+        # Get nargs from metadata
+        nargs = get_cli_positional_nargs(info)
+
+        # Get metavar from metadata or default to uppercase field name
+        metavar = get_cli_positional_metavar(info)
+        if not metavar:
+            metavar = field_name.upper()
+
+        # Get help text
+        help_text = get_cli_help(info) or f"{field_name}"
+
+        # Get choices if specified
+        choices = get_cli_choices(info)
+
+        # Get type converter - for lists, need to convert element type
+        if info["is_list"] and info["args"]:
+            # Get the element type from List[T]
+            element_type = info["args"][0]
+            arg_type = self._get_argument_type(element_type)
+        else:
+            arg_type = self._get_argument_type(info["type"])
+
+        # Build kwargs
+        # Build kwargs with explicit type for mypy
+        kwargs: Dict[str, Any] = {
+            "help": help_text,
+            "metavar": metavar,
+        }
+
+        if nargs is not None:
+            kwargs["nargs"] = nargs
+
+        if choices:
+            kwargs["choices"] = choices
+
+        # Type handling: for list-like nargs, type applies to each element
+        kwargs["type"] = arg_type
+
+        # Add default if specified and nargs allows it
+        if nargs in ("?", "*"):
+            default = info.get("default")
+            if default is not None:
+                kwargs["default"] = default
+
+        parser.add_argument(arg_name, **kwargs)
 
     def _add_field_argument(
         self, parser: argparse.ArgumentParser, field_name: str, info: Dict[str, Any]

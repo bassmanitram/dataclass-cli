@@ -371,3 +371,152 @@ def annotation_filter(field_name: str, field_info: Dict[str, Any]) -> bool:
         builder = GenericConfigBuilder(MyConfig, field_filter=annotation_filter)
     """
     return not is_cli_excluded(field_info)
+
+
+def cli_positional(
+    nargs: Optional[Any] = None, metavar: Optional[str] = None, **kwargs
+) -> Any:
+    """
+    Mark a dataclass field as a positional CLI argument.
+
+    Positional arguments don't use -- prefix and are matched by position.
+
+    IMPORTANT CONSTRAINTS:
+    - At most ONE positional field can use nargs='*' or '+'
+    - If present, positional list must be the LAST positional argument
+    - For multiple lists, use optional arguments with flags instead
+
+    Args:
+        nargs: Number of arguments
+               None = exactly one (required)
+               '?' = zero or one (optional)
+               '*' = zero or more (list, optional)
+               '+' = one or more (list, required)
+               int = exact count (list)
+        metavar: Name for display in help text (default: FIELD_NAME)
+        **kwargs: Additional field parameters (default, default_factory, etc.)
+
+    Returns:
+        Field object with positional metadata
+
+    Examples:
+        @dataclass
+        class CopyArgs:
+            # Required positional
+            source: str = cli_positional(help="Source file")
+            dest: str = cli_positional(help="Destination file")
+
+            # Optional flag
+            recursive: bool = cli_short('r', default=False)
+
+        # Usage: prog source.txt dest.txt -r
+
+        @dataclass
+        class GitCommit:
+            # Required command
+            command: str = cli_positional(help="Git command")
+
+            # Variable files (must be last!)
+            files: List[str] = cli_positional(nargs='+', help="Files to commit")
+
+            # Optional message
+            message: str = cli_short('m', default="")
+
+        # Usage: prog commit file1.py file2.py -m "Message"
+
+        @dataclass
+        class PlotPoint:
+            # Exact count
+            coordinates: List[float] = cli_positional(
+                nargs=2,
+                metavar='X Y',
+                help="X and Y coordinates"
+            )
+
+            # Optional label
+            label: str = cli_positional(nargs='?', default='', help="Point label")
+
+        # Usage: prog 1.5 2.5 "Point A"
+        # Usage: prog 1.5 2.5  # Uses default label
+
+        @dataclass
+        class Convert:
+            # With combine_annotations
+            input: str = combine_annotations(
+                cli_positional(),
+                cli_help("Input file to convert")
+            )
+
+            output: str = combine_annotations(
+                cli_positional(nargs='?'),
+                cli_help("Output file (default: stdout)"),
+                default='stdout'
+            )
+
+    See Also:
+        POSITIONAL_LIST_CONFLICTS.md for detailed discussion of constraints
+    """
+    field_kwargs = kwargs.copy()
+    metadata = field_kwargs.pop("metadata", {})
+    metadata["cli_positional"] = True
+
+    if nargs is not None:
+        metadata["cli_positional_nargs"] = nargs
+
+    if metavar is not None:
+        metadata["cli_positional_metavar"] = metavar
+
+    # Move 'help' to metadata (dataclass field() doesn't accept it)
+    if "help" in field_kwargs:
+        metadata["cli_help"] = field_kwargs.pop("help")
+
+    field_kwargs["metadata"] = metadata
+    return field(**field_kwargs)
+
+
+def is_cli_positional(field_info: Dict[str, Any]) -> bool:
+    """
+    Check if a field is marked as a positional CLI argument.
+
+    Args:
+        field_info: Field information dictionary from GenericConfigBuilder
+
+    Returns:
+        True if field is a positional argument
+    """
+    field_obj = field_info.get("field_obj")
+    if field_obj and hasattr(field_obj, "metadata"):
+        return field_obj.metadata.get("cli_positional", False)
+    return False
+
+
+def get_cli_positional_nargs(field_info: Dict[str, Any]) -> Optional[Any]:
+    """
+    Get nargs value for a positional CLI argument.
+
+    Args:
+        field_info: Field information dictionary from GenericConfigBuilder
+
+    Returns:
+        nargs value if specified, otherwise None (meaning exactly one)
+    """
+    field_obj = field_info.get("field_obj")
+    if field_obj and hasattr(field_obj, "metadata"):
+        return field_obj.metadata.get("cli_positional_nargs")
+    return None
+
+
+def get_cli_positional_metavar(field_info: Dict[str, Any]) -> Optional[str]:
+    """
+    Get metavar for a positional CLI argument.
+
+    Args:
+        field_info: Field information dictionary from GenericConfigBuilder
+
+    Returns:
+        Metavar string if specified, otherwise None
+    """
+    field_obj = field_info.get("field_obj")
+    if field_obj and hasattr(field_obj, "metadata"):
+        return field_obj.metadata.get("cli_positional_metavar")
+    return None
