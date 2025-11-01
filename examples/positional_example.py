@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Example demonstrating positional arguments with dataclass-config.
+Example demonstrating positional arguments with dataclass-args.
 
 This example shows various positional argument patterns including:
 - Required positionals
@@ -12,7 +12,7 @@ This example shows various positional argument patterns including:
 from dataclasses import dataclass
 from typing import List
 
-from dataclass_config import (
+from dataclass_args import (
     build_config,
     cli_choices,
     cli_help,

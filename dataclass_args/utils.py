@@ -40,7 +40,7 @@ def exclude_internal_fields(field_name: str, field_info: Dict[str, Any]) -> bool
         True if field should be included (doesn't start with underscore)
 
     Example:
-        from dataclass_config import GenericConfigBuilder
+        from dataclass_args import GenericConfigBuilder
 
         builder = GenericConfigBuilder(MyConfig, field_filter=exclude_internal_fields)
     """
@@ -94,7 +94,7 @@ def load_structured_file(file_path: Union[str, Path]) -> Dict[str, Any]:
     elif suffix in {".yaml", ".yml"}:
         if not HAS_YAML:
             raise ValueError(
-                f"YAML support not available. Install with: pip install 'dataclass-config[yaml]'"
+                f"YAML support not available. Install with: pip install 'dataclass-args[yaml]'"
             )
         try:
             return yaml.safe_load(content) or {}
@@ -105,7 +105,7 @@ def load_structured_file(file_path: Union[str, Path]) -> Dict[str, Any]:
     elif suffix == ".toml":
         if not HAS_TOML:
             raise ValueError(
-                f"TOML support not available. Install with: pip install 'dataclass-config[toml]'"
+                f"TOML support not available. Install with: pip install 'dataclass-args[toml]'"
             )
         try:
             return tomllib.loads(content)
@@ -144,5 +144,5 @@ def load_structured_file(file_path: Union[str, Path]) -> Dict[str, Any]:
         raise ValueError(
             f"Could not parse {file_path} as any supported format. "
             f"Supported formats: {', '.join(supported_formats)}. "
-            f"Install additional format support with: pip install 'dataclass-config[yaml,toml]'"
+            f"Install additional format support with: pip install 'dataclass-args[yaml,toml]'"
         )

@@ -25,15 +25,15 @@ jobs:
 
     - name: Lint with black
       run: |
-        black --check --diff dataclass_config/ tests/ examples/
+        black --check --diff dataclass_args/ tests/ examples/
 
     - name: Sort imports with isort
       run: |
-        isort --check-only --diff dataclass_config/ tests/ examples/
+        isort --check-only --diff dataclass_args/ tests/ examples/
 
     - name: Type check with mypy
       run: |
-        mypy dataclass_config/
+        mypy dataclass_args/
 
     - name: Check package metadata
       run: |

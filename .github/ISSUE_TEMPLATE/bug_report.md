@@ -26,7 +26,7 @@ A clear and concise description of what actually happened.
 ## Minimal Example
 ```python
 from dataclasses import dataclass
-from dataclass_config import build_config
+from dataclass_args import build_config
 
 @dataclass
 class Config:
@@ -39,7 +39,7 @@ config = build_config(Config)
 
 ## Environment
 - Python version: [e.g. 3.10.0]
-- dataclass-config version: [e.g. 1.0.0]
+- dataclass-args version: [e.g. 1.0.0]
 - Operating System: [e.g. Ubuntu 22.04, Windows 11, macOS 13.0]
 - Command used: [e.g. `python app.py --name test`]
 

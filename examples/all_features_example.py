@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Complete example demonstrating all dataclass-config features together.
+Complete example demonstrating all dataclass-args features together.
 
 This example shows how to combine:
 - Short options (-n, -e, -r)
@@ -15,7 +15,7 @@ Run with --help to see the generated CLI interface.
 from dataclasses import dataclass
 from typing import List, Optional
 
-from dataclass_config import (
+from dataclass_args import (
     build_config,
     cli_choices,
     cli_exclude,
@@ -30,7 +30,7 @@ class DeploymentConfig:
     """
     Complete configuration for application deployment.
 
-    Demonstrates all major dataclass-config features working together.
+    Demonstrates all major dataclass-args features working together.
     """
 
     # ========================================

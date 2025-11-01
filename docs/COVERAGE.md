@@ -46,7 +46,7 @@ make coverage-html
 ```bash
 # Generate all report formats
 pytest tests/ \
-    --cov=dataclass_config \
+    --cov=dataclass_args \
     --cov-report=term-missing \
     --cov-report=html \
     --cov-report=xml
@@ -122,7 +122,7 @@ Coverage settings are in `pyproject.toml`:
 
 ```toml
 [tool.coverage.run]
-source = ["dataclass_config"]
+source = ["dataclass_args"]
 branch = true  # Track branch coverage
 omit = ["*/tests/*", "*/examples/*"]
 
@@ -177,7 +177,7 @@ def test_yaml_loading():
 ```yaml
 - name: Run tests with coverage
   run: |
-    pytest --cov=dataclass_config --cov-report=xml
+    pytest --cov=dataclass_args --cov-report=xml
 
 - name: Upload coverage to Codecov
   uses: codecov/codecov-action@v3

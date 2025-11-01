@@ -1,13 +1,13 @@
-# Dataclass Argparse
+# Dataclass Args
 
 Generate command-line interfaces from Python dataclasses.
 
-[![Tests](https://github.com/bassmanitram/dataclass-config/actions/workflows/test.yml/badge.svg)](https://github.com/bassmanitram/dataclass-config/actions/workflows/test.yml)
-[![Code Quality](https://github.com/bassmanitram/dataclass-config/actions/workflows/lint.yml/badge.svg)](https://github.com/bassmanitram/dataclass-config/actions/workflows/lint.yml)
-[![Examples](https://github.com/bassmanitram/dataclass-config/actions/workflows/examples.yml/badge.svg)](https://github.com/bassmanitram/dataclass-config/actions/workflows/examples.yml)
-[![codecov](https://codecov.io/gh/bassmanitram/dataclass-config/branch/main/graph/badge.svg)](https://codecov.io/gh/bassmanitram/dataclass-config)
+[![Tests](https://github.com/bassmanitram/dataclass-args/actions/workflows/test.yml/badge.svg)](https://github.com/bassmanitram/dataclass-args/actions/workflows/test.yml)
+[![Code Quality](https://github.com/bassmanitram/dataclass-args/actions/workflows/lint.yml/badge.svg)](https://github.com/bassmanitram/dataclass-args/actions/workflows/lint.yml)
+[![Examples](https://github.com/bassmanitram/dataclass-args/actions/workflows/examples.yml/badge.svg)](https://github.com/bassmanitram/dataclass-args/actions/workflows/examples.yml)
+[![codecov](https://codecov.io/gh/bassmanitram/dataclass-args/branch/main/graph/badge.svg)](https://codecov.io/gh/bassmanitram/dataclass-args)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![PyPI version](https://badge.fury.io/py/dataclass-config.svg)](https://badge.fury.io/py/dataclass-config)
+[![PyPI version](https://badge.fury.io/py/dataclass-args.svg)](https://badge.fury.io/py/dataclass-args)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
@@ -29,18 +29,18 @@ Generate command-line interfaces from Python dataclasses.
 ### Installation
 
 ```bash
-pip install dataclass-config
+pip install dataclass-args
 
 # With optional format support
-pip install "dataclass-config[yaml,toml]"  # YAML and TOML config files
-pip install "dataclass-config[all]"        # All optional dependencies
+pip install "dataclass-args[yaml,toml]"  # YAML and TOML config files
+pip install "dataclass-args[all]"        # All optional dependencies
 ```
 
 ### Basic Usage
 
 ```python
 from dataclasses import dataclass
-from dataclass_config import build_config
+from dataclass_args import build_config
 
 @dataclass
 class Config:
@@ -80,7 +80,7 @@ options:
 Add concise short flags to your CLI:
 
 ```python
-from dataclass_config import cli_short
+from dataclass_args import cli_short
 
 @dataclass
 class ServerConfig:
@@ -142,7 +142,7 @@ $ python app.py --no-verbose       # Negative form
 Restrict field values to a valid set:
 
 ```python
-from dataclass_config import cli_choices
+from dataclass_args import cli_choices
 
 @dataclass
 class DeployConfig:
@@ -167,7 +167,7 @@ error: argument --environment: invalid choice: 'invalid' (choose from 'dev', 'st
 Add positional arguments that don't require `--` prefixes:
 
 ```python
-from dataclass_config import cli_positional
+from dataclass_args import cli_positional
 
 @dataclass
 class CopyCommand:
@@ -265,7 +265,7 @@ class Invalid:
 Use `combine_annotations()` to merge multiple features:
 
 ```python
-from dataclass_config import combine_annotations, cli_short, cli_choices, cli_help
+from dataclass_args import combine_annotations, cli_short, cli_choices, cli_help
 
 @dataclass
 class AppConfig:
@@ -309,7 +309,7 @@ options:
 
 ```python
 from dataclasses import dataclass
-from dataclass_config import build_config, cli_short, cli_choices, cli_help, combine_annotations
+from dataclass_args import build_config, cli_short, cli_choices, cli_help, combine_annotations
 
 @dataclass
 class DeploymentConfig:
@@ -391,7 +391,7 @@ $ python deploy.py --help
 Load string parameters from files using the `@filename` syntax:
 
 ```python
-from dataclass_config import cli_file_loadable
+from dataclass_args import cli_file_loadable
 
 @dataclass
 class AppConfig:
@@ -451,7 +451,7 @@ config = build_config_from_cli(AppConfig, [
 ### Custom Help and Annotations
 
 ```python
-from dataclass_config import cli_help, cli_exclude, cli_file_loadable
+from dataclass_args import cli_help, cli_exclude, cli_file_loadable
 
 @dataclass
 class ServerConfig:
@@ -659,7 +659,7 @@ Supports multiple configuration file formats:
 }
 ```
 
-### YAML (requires `pip install "dataclass-config[yaml]"`)
+### YAML (requires `pip install "dataclass-args[yaml]"`)
 ```yaml
 name: MyApp
 count: 42
@@ -668,7 +668,7 @@ database:
   port: 5432
 ```
 
-### TOML (requires `pip install "dataclass-config[toml]"`)
+### TOML (requires `pip install "dataclass-args[toml]"`)
 ```toml
 name = "MyApp"
 count = 42
@@ -694,7 +694,7 @@ Check the [`examples/`](examples/) directory for complete working examples:
 ```python
 from dataclasses import dataclass
 from typing import List
-from dataclass_config import build_config, cli_short, cli_help, cli_exclude, cli_file_loadable, combine_annotations
+from dataclass_args import build_config, cli_short, cli_help, cli_exclude, cli_file_loadable, combine_annotations
 
 @dataclass
 class ServerConfig:
@@ -753,16 +753,16 @@ Contributions are welcome! Please see our [Contributing Guide](CONTRIBUTING.md) 
 ### Development Setup
 
 ```bash
-git clone https://github.com/bassmanitram/dataclass-config.git
-cd dataclass-config
+git clone https://github.com/bassmanitram/dataclass-args.git
+cd dataclass-args
 pip install -e ".[dev,all]"
 ```
 
 ### Development Setup
 
 ```bash
-git clone https://github.com/bassmanitram/dataclass-config.git
-cd dataclass-config
+git clone https://github.com/bassmanitram/dataclass-args.git
+cd dataclass-args
 pip install -e ".[dev,all]"
 make setup  # Install dev dependencies and pre-commit hooks
 ```
@@ -802,14 +802,14 @@ All code changes should maintain or improve coverage. The minimum required cover
 ```bash
 # Format code
 make format
-black dataclass_config/ tests/ examples/
-isort dataclass_config/ tests/ examples/
+black dataclass_args/ tests/ examples/
+isort dataclass_args/ tests/ examples/
 
 # Check formatting
 make lint
-black --check dataclass_config/ tests/
-flake8 dataclass_config/ tests/
-mypy dataclass_config/
+black --check dataclass_args/ tests/
+flake8 dataclass_args/ tests/
+mypy dataclass_args/
 ```
 
 ### Full Check (like CI)
@@ -825,7 +825,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and changes.
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/bassmanitram/dataclass-config/issues)
+- **Issues**: [GitHub Issues](https://github.com/bassmanitram/dataclass-args/issues)
 - **Documentation**: This README and comprehensive docstrings
 - **Examples**: See the [examples/](examples/) directory
 
@@ -833,7 +833,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and changes.
 
 ```python
 from dataclasses import dataclass
-from dataclass_config import (
+from dataclass_args import (
     build_config,                # Main function
     cli_short,                   # Short options: -n
     cli_positional,              # Positional args

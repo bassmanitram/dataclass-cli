@@ -11,9 +11,9 @@ from typing import Dict, List, Optional
 
 import pytest
 
-from dataclass_config import GenericConfigBuilder, build_config, build_config_from_cli
-from dataclass_config.annotations import cli_exclude, cli_help
-from dataclass_config.exceptions import ConfigBuilderError, ConfigurationError
+from dataclass_args import GenericConfigBuilder, build_config, build_config_from_cli
+from dataclass_args.annotations import cli_exclude, cli_help
+from dataclass_args.exceptions import ConfigBuilderError, ConfigurationError
 
 
 class TestDictConfigLoading:

@@ -18,7 +18,7 @@ echo ""
 # Run tests with coverage
 echo -e "${YELLOW}Running tests with coverage...${NC}"
 python -m pytest tests/ \
-    --cov=dataclass_config \
+    --cov=dataclass_args \
     --cov-report=term-missing \
     --cov-report=html \
     --cov-report=xml \

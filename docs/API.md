@@ -1,6 +1,6 @@
 # API Reference
 
-Complete API documentation for dataclass-config.
+Complete API documentation for dataclass-args.
 
 ## Table of Contents
 
@@ -35,7 +35,7 @@ The primary function for generating CLI from a dataclass. Simplified convenience
 **Example:**
 ```python
 from dataclasses import dataclass
-from dataclass_config import build_config
+from dataclass_args import build_config
 
 @dataclass
 class Config:
@@ -73,7 +73,7 @@ Advanced function with additional configuration options. Provides full control o
 
 **Example:**
 ```python
-from dataclass_config import build_config_from_cli
+from dataclass_args import build_config_from_cli
 
 config = build_config_from_cli(
     Config,
@@ -102,7 +102,7 @@ Add a short option flag (e.g., `-n`) to a field.
 **Example:**
 ```python
 from dataclasses import dataclass
-from dataclass_config import cli_short
+from dataclass_args import cli_short
 
 @dataclass
 class Config:
@@ -131,7 +131,7 @@ Restrict field values to a specific set of valid choices.
 
 **Example:**
 ```python
-from dataclass_config import cli_choices
+from dataclass_args import cli_choices
 
 @dataclass
 class Config:
@@ -160,7 +160,7 @@ Add custom help text for a field in the `--help` output.
 
 **Example:**
 ```python
-from dataclass_config import cli_help
+from dataclass_args import cli_help
 
 @dataclass
 class Config:
@@ -198,7 +198,7 @@ Mark a field as a positional argument (no `--` prefix required).
 
 ```python
 from typing import List
-from dataclass_config import cli_positional, cli_short
+from dataclass_args import cli_positional, cli_short
 
 # Required positional
 @dataclass
@@ -253,7 +253,7 @@ Exclude a field from CLI argument generation (internal/derived fields).
 
 **Example:**
 ```python
-from dataclass_config import cli_exclude
+from dataclass_args import cli_exclude
 import uuid
 
 @dataclass
@@ -279,7 +279,7 @@ Explicitly mark a dataclass field to be included in CLI arguments. Useful when u
 
 **Example:**
 ```python
-from dataclass_config import cli_include
+from dataclass_args import cli_include
 
 @dataclass
 class Config:
@@ -303,7 +303,7 @@ When a CLI argument value starts with '@', the remaining part is treated as a fi
 
 **Example:**
 ```python
-from dataclass_config import cli_file_loadable
+from dataclass_args import cli_file_loadable
 
 @dataclass
 class Config:
@@ -338,7 +338,7 @@ Combine multiple annotation functions on a single field.
 
 **Example:**
 ```python
-from dataclass_config import combine_annotations, cli_short, cli_choices, cli_help
+from dataclass_args import combine_annotations, cli_short, cli_choices, cli_help
 
 @dataclass
 class Config:
@@ -418,7 +418,7 @@ Build dataclass instance from parsed CLI arguments.
 
 **Example:**
 ```python
-from dataclass_config.builder import GenericConfigBuilder
+from dataclass_args.builder import GenericConfigBuilder
 import argparse
 
 @dataclass
@@ -518,7 +518,7 @@ Base exception for configuration building errors.
 
 **Example:**
 ```python
-from dataclass_config.exceptions import ConfigBuilderError
+from dataclass_args.exceptions import ConfigBuilderError
 
 try:
     config = build_config(InvalidConfig)
@@ -630,8 +630,8 @@ Configuration files can be loaded using the `--config` option (automatically add
 
 **Supported Formats:**
 - JSON (built-in)
-- YAML (requires `pip install "dataclass-config[yaml]"`)
-- TOML (requires `pip install "dataclass-config[toml]"`)
+- YAML (requires `pip install "dataclass-args[yaml]"`)
+- TOML (requires `pip install "dataclass-args[toml]"`)
 
 **Example:**
 
@@ -756,7 +756,7 @@ args = parser.parse_args()
 **After:**
 ```python
 from dataclasses import dataclass
-from dataclass_config import build_config
+from dataclass_args import build_config
 
 @dataclass
 class Config:
@@ -784,7 +784,7 @@ def main(name, port, debug):
 **After:**
 ```python
 from dataclasses import dataclass
-from dataclass_config import build_config
+from dataclass_args import build_config
 
 @dataclass
 class Config:

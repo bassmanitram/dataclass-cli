@@ -1,5 +1,5 @@
 """
-Basic tests for dataclass-config functionality.
+Basic tests for dataclass-args functionality.
 """
 
 from dataclasses import dataclass
@@ -7,13 +7,13 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 
-from dataclass_config import (
+from dataclass_args import (
     build_config_from_cli,
     cli_exclude,
     cli_file_loadable,
     cli_help,
 )
-from dataclass_config.exceptions import ConfigBuilderError, ConfigurationError
+from dataclass_args.exceptions import ConfigBuilderError, ConfigurationError
 
 
 @dataclass

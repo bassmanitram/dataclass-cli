@@ -10,7 +10,7 @@ from unittest.mock import mock_open, patch
 
 import pytest
 
-from dataclass_config.utils import exclude_internal_fields, load_structured_file
+from dataclass_args.utils import exclude_internal_fields, load_structured_file
 
 
 class TestExcludeInternalFields:
@@ -147,11 +147,11 @@ class TestLoadStructuredFile:
 
     def test_unsupported_format_no_extension(self, monkeypatch):
         """Should raise ValueError for unparseable file without extension."""
-        import dataclass_config.utils
+        import dataclass_args.utils
 
         # Disable optional parsers to test the error path
-        monkeypatch.setattr(dataclass_config.utils, "HAS_YAML", False)
-        monkeypatch.setattr(dataclass_config.utils, "HAS_TOML", False)
+        monkeypatch.setattr(dataclass_args.utils, "HAS_YAML", False)
+        monkeypatch.setattr(dataclass_args.utils, "HAS_TOML", False)
 
         with tempfile.NamedTemporaryFile(mode="w", suffix="", delete=False) as f:
             f.write("This is not valid JSON, YAML, or TOML content !!!")
@@ -180,11 +180,11 @@ class TestLoadStructuredFile:
 
     def test_unsupported_extension_invalid_content(self, monkeypatch):
         """Should fail auto-detect for unknown extension with invalid content."""
-        import dataclass_config.utils
+        import dataclass_args.utils
 
         # Disable optional parsers to test the error path with only JSON
-        monkeypatch.setattr(dataclass_config.utils, "HAS_YAML", False)
-        monkeypatch.setattr(dataclass_config.utils, "HAS_TOML", False)
+        monkeypatch.setattr(dataclass_args.utils, "HAS_YAML", False)
+        monkeypatch.setattr(dataclass_args.utils, "HAS_TOML", False)
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".xyz", delete=False) as f:
             f.write("random content that is not structured data")
@@ -387,10 +387,10 @@ enabled = false
 
     def test_autodetect_toml_without_extension(self, monkeypatch):
         """Should auto-detect TOML format without extension when TOML available."""
-        import dataclass_config.utils
+        import dataclass_args.utils
 
         # Disable YAML so TOML gets tried
-        monkeypatch.setattr(dataclass_config.utils, "HAS_YAML", False)
+        monkeypatch.setattr(dataclass_args.utils, "HAS_YAML", False)
 
         toml_content = 'name = "test"\ncount = 42\nenabled = true\n'
         with tempfile.NamedTemporaryFile(mode="w", suffix="", delete=False) as f:
@@ -405,10 +405,10 @@ enabled = false
 
     def test_autodetect_toml_with_unknown_extension(self, monkeypatch):
         """Should auto-detect TOML with unknown extension."""
-        import dataclass_config.utils
+        import dataclass_args.utils
 
         # Disable YAML so TOML gets tried
-        monkeypatch.setattr(dataclass_config.utils, "HAS_YAML", False)
+        monkeypatch.setattr(dataclass_args.utils, "HAS_YAML", False)
 
         toml_content = '[section]\nkey = "value"\nnumber = 123\n'
         with tempfile.NamedTemporaryFile(mode="w", suffix=".cfg", delete=False) as f:
@@ -428,9 +428,9 @@ class TestLoadStructuredFileMissingDependencies:
     def test_yaml_without_pyyaml(self, monkeypatch):
         """Should raise helpful error for YAML without PyYAML installed."""
         # Mock HAS_YAML to False
-        import dataclass_config.utils
+        import dataclass_args.utils
 
-        monkeypatch.setattr(dataclass_config.utils, "HAS_YAML", False)
+        monkeypatch.setattr(dataclass_args.utils, "HAS_YAML", False)
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("test: value")
@@ -447,9 +447,9 @@ class TestLoadStructuredFileMissingDependencies:
     def test_toml_without_tomli(self, monkeypatch):
         """Should raise helpful error for TOML without tomli/tomllib."""
         # Mock HAS_TOML to False
-        import dataclass_config.utils
+        import dataclass_args.utils
 
-        monkeypatch.setattr(dataclass_config.utils, "HAS_TOML", False)
+        monkeypatch.setattr(dataclass_args.utils, "HAS_TOML", False)
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
             f.write('test = "value"')
@@ -552,7 +552,7 @@ class TestLoadStructuredFileAutoDetectionErrorPaths:
 
     def test_autodetect_yaml_error_fallback_to_toml(self, monkeypatch):
         """Should try TOML if YAML fails during auto-detection."""
-        import dataclass_config.utils
+        import dataclass_args.utils
 
         # Create content that is valid TOML but causes YAML error
         toml_content = '[section]\nkey = "value"\n'
@@ -588,7 +588,7 @@ class TestLoadStructuredFileAutoDetectionErrorPaths:
 
         import yaml
 
-        import dataclass_config.utils
+        import dataclass_args.utils
 
         # Mock all parsers to fail
         monkeypatch.setattr(
@@ -632,11 +632,11 @@ class TestLoadStructuredFileAutoDetectionErrorPaths:
 
     def test_error_message_lists_available_formats(self, monkeypatch):
         """Error message should list available formats."""
-        import dataclass_config.utils
+        import dataclass_args.utils
 
         # Test with only JSON available
-        monkeypatch.setattr(dataclass_config.utils, "HAS_YAML", False)
-        monkeypatch.setattr(dataclass_config.utils, "HAS_TOML", False)
+        monkeypatch.setattr(dataclass_args.utils, "HAS_YAML", False)
+        monkeypatch.setattr(dataclass_args.utils, "HAS_TOML", False)
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".xyz", delete=False) as f:
             f.write("invalid")

@@ -18,7 +18,7 @@ If you have ideas for how this feature should work, please provide examples:
 
 ```python
 from dataclasses import dataclass
-from dataclass_config import build_config
+from dataclass_args import build_config
 
 @dataclass
 class Config:

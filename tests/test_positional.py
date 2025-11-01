@@ -7,7 +7,7 @@ from typing import List, Optional
 
 import pytest
 
-from dataclass_config import (
+from dataclass_args import (
     ConfigBuilderError,
     build_config,
     cli_choices,

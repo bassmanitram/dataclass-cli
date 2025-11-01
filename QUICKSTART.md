@@ -1,11 +1,11 @@
 # Quick Start Guide
 
-Get started with dataclass-config in 5 minutes.
+Get started with dataclass-args in 5 minutes.
 
 ## Installation
 
 ```bash
-pip install dataclass-config
+pip install dataclass-args
 ```
 
 ## 1. Basic Usage
@@ -14,7 +14,7 @@ pip install dataclass-config
 
 ```python
 from dataclasses import dataclass
-from dataclass_config import build_config
+from dataclass_args import build_config
 
 @dataclass
 class Config:
@@ -35,7 +35,7 @@ myapp on port 9000
 **Use `cli_short()` for concise `-n` flags:**
 
 ```python
-from dataclass_config import cli_short
+from dataclass_args import cli_short
 
 @dataclass
 class Config:
@@ -54,7 +54,7 @@ $ python app.py -n myapp -p 9000
 **Use `cli_positional()` for arguments without `--` prefix:**
 
 ```python
-from dataclass_config import cli_positional
+from dataclass_args import cli_positional
 
 @dataclass
 class CopyCommand:
@@ -96,7 +96,7 @@ $ python app.py -n myapp --no-optimize   # Disable optimize
 **Use `cli_choices()` to restrict values:**
 
 ```python
-from dataclass_config import cli_choices
+from dataclass_args import cli_choices
 
 @dataclass
 class Config:
@@ -116,7 +116,7 @@ $ python app.py -n myapp --environment test   # ✗ Error: invalid choice
 **Use `combine_annotations()` to use multiple features together:**
 
 ```python
-from dataclass_config import combine_annotations, cli_short, cli_choices, cli_help, cli_positional
+from dataclass_args import combine_annotations, cli_short, cli_choices, cli_help, cli_positional
 
 @dataclass
 class Config:
@@ -172,7 +172,7 @@ options:
 ```python
 from dataclasses import dataclass
 from typing import List
-from dataclass_config import build_config, combine_annotations, cli_short, cli_choices, cli_help, cli_positional
+from dataclass_args import build_config, combine_annotations, cli_short, cli_choices, cli_help, cli_positional
 
 @dataclass
 class ServerConfig:
@@ -251,7 +251,7 @@ $ python server.py --help
 ### File Copy Tool
 
 ```python
-from dataclass_config import cli_positional
+from dataclass_args import cli_positional
 
 @dataclass
 class CopyConfig:
@@ -354,7 +354,7 @@ $ python build.py -p myapp -d -v                # Deploy with verbose
 ✅ **File loading** with `@filename` syntax
 ✅ **Configuration files** (JSON, YAML, TOML)
 
-That's it! You now know enough to build powerful CLIs with dataclass-config. 🚀
+That's it! You now know enough to build powerful CLIs with dataclass-args. 🚀
 
 For more details, see:
 - [README.md](README.md) - Full documentation

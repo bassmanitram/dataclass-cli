@@ -12,8 +12,8 @@ This project adheres to a standard code of conduct. By participating, you are ex
 
 1. **Fork and clone the repository:**
    ```bash
-   git clone https://github.com/your-username/dataclass-config.git
-   cd dataclass-config
+   git clone https://github.com/your-username/dataclass-args.git
+   cd dataclass-args
    ```
 
 2. **Create a virtual environment:**
@@ -29,7 +29,7 @@ This project adheres to a standard code of conduct. By participating, you are ex
 
 4. **Verify installation:**
    ```bash
-   python -c "from dataclass_config import build_config; print('✅ Installation successful!')"
+   python -c "from dataclass_args import build_config; print('✅ Installation successful!')"
    ```
 
 ### Development Workflow
@@ -44,18 +44,18 @@ This project adheres to a standard code of conduct. By participating, you are ex
 3. **Run tests:**
    ```bash
    pytest
-   pytest --cov=dataclass_config  # With coverage
+   pytest --cov=dataclass_args  # With coverage
    ```
 
 4. **Format code:**
    ```bash
-   black dataclass_config/ tests/ examples/
-   isort dataclass_config/ tests/ examples/
+   black dataclass_args/ tests/ examples/
+   isort dataclass_args/ tests/ examples/
    ```
 
 5. **Type checking:**
    ```bash
-   mypy dataclass_config/
+   mypy dataclass_args/
    ```
 
 6. **Commit and push:**
@@ -80,7 +80,7 @@ This project adheres to a standard code of conduct. By participating, you are ex
 ### Code Structure
 
 ```
-dataclass_config/
+dataclass_args/
 ├── __init__.py          # Main exports
 ├── annotations.py       # Field annotations
 ├── builder.py          # Core GenericConfigBuilder
@@ -103,7 +103,7 @@ dataclass_config/
 pytest
 
 # Run with coverage
-pytest --cov=dataclass_config --cov-report=html
+pytest --cov=dataclass_args --cov-report=html
 
 # Run specific test files
 pytest tests/test_basic.py
@@ -150,7 +150,7 @@ What actually happens
 
 ## Environment
 - Python version: 3.x.x
-- dataclass-config version: x.x.x
+- dataclass-args version: x.x.x
 - OS: Linux/Windows/macOS
 ```
 

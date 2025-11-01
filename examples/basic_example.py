@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Basic example demonstrating dataclass-config usage.
+Basic example demonstrating dataclass-args usage.
 
 Run with:
     python basic_example.py --name "MyApp" --count 5 --debug true
@@ -14,7 +14,7 @@ from dataclasses import dataclass
 # Add parent directory to path for development
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from dataclass_config import build_config
+from dataclass_args import build_config
 
 
 @dataclass

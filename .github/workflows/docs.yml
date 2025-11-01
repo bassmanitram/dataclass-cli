@@ -8,7 +8,7 @@ on:
       - 'QUICKSTART.md'
       - 'docs/**'
       - 'examples/**'
-      - 'dataclass_config/**'
+      - 'dataclass_args/**'
 
 jobs:
   validate-docs:
@@ -47,7 +47,7 @@ jobs:
         # Test that README examples work
         python -c "
         from dataclasses import dataclass
-        from dataclass_config import build_config_from_cli
+        from dataclass_args import build_config_from_cli
 
         @dataclass
         class Config:

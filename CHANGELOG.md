@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🎉 First Stable Release
 
-This is the first production-ready release of dataclass-config. The API is now stable and follows semantic versioning.
+This is the first production-ready release of dataclass-args. The API is now stable and follows semantic versioning.
 
 #### Core Features
 - **Zero-boilerplate CLI generation** from Python dataclasses
@@ -74,6 +74,6 @@ No migration needed - this is the initial stable release.
 - Comprehensive test suite
 - Documentation and examples
 
-[Unreleased]: https://github.com/bassmanitram/dataclass-config/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/bassmanitram/dataclass-config/releases/tag/v1.0.0
-[0.1.0]: https://github.com/bassmanitram/dataclass-config/releases/tag/v0.1.0
+[Unreleased]: https://github.com/bassmanitram/dataclass-args/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/bassmanitram/dataclass-args/releases/tag/v1.0.0
+[0.1.0]: https://github.com/bassmanitram/dataclass-args/releases/tag/v0.1.0

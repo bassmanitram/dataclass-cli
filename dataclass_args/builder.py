@@ -609,7 +609,7 @@ def build_config_from_cli(
 
     Example:
         from dataclasses import dataclass
-        from dataclass_config import cli_exclude, cli_help, cli_file_loadable
+        from dataclass_args import cli_exclude, cli_help, cli_file_loadable
 
         @dataclass
         class MyConfig:
@@ -660,7 +660,7 @@ def build_config(config_class: Type, args: Optional[List[str]] = None) -> Any:
 
     Example:
         from dataclasses import dataclass
-        from dataclass_config import build_config
+        from dataclass_args import build_config
 
         @dataclass
         class Config:

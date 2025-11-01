@@ -3,7 +3,7 @@ requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "dataclass-config"
+name = "dataclass-args"
 version = "1.0.0"
 description = "Zero-boilerplate CLI generation from Python dataclasses with advanced type support and file loading"
 readme = "README.md"
@@ -65,18 +65,18 @@ validation = [
     "pydantic>=2.0",
 ]
 all = [
-    "dataclass-config[yaml,toml,validation]",
+    "dataclass-args[yaml,toml,validation]",
 ]
 
 [project.urls]
-Homepage = "https://github.com/bassmanitram/dataclass-config"
-Repository = "https://github.com/bassmanitram/dataclass-config"
-Documentation = "https://github.com/bassmanitram/dataclass-config#readme"
-Issues = "https://github.com/bassmanitram/dataclass-config/issues"
+Homepage = "https://github.com/bassmanitram/dataclass-args"
+Repository = "https://github.com/bassmanitram/dataclass-args"
+Documentation = "https://github.com/bassmanitram/dataclass-args#readme"
+Issues = "https://github.com/bassmanitram/dataclass-args/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["dataclass_config*"]
+include = ["dataclass_args*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -88,7 +88,7 @@ markers = [
     "integration: Integration tests that test component interactions",
 ]
 addopts = [
-    "--cov=dataclass_config",
+    "--cov=dataclass_args",
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-report=xml",
@@ -96,7 +96,7 @@ addopts = [
 ]
 
 [tool.coverage.run]
-source = ["dataclass_config"]
+source = ["dataclass_args"]
 omit = [
     "*/tests/*",
     "*/test_*.py",
@@ -150,7 +150,7 @@ extend-exclude = '''
 profile = "black"
 multi_line_output = 3
 line_length = 88
-known_first_party = ["dataclass_config"]
+known_first_party = ["dataclass_args"]
 
 [tool.mypy]
 python_version = "3.9"

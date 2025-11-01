@@ -15,7 +15,7 @@ with advanced features including:
 
 Basic Usage:
     from dataclasses import dataclass
-    from dataclass_config import build_config
+    from dataclass_args import build_config
 
     @dataclass
     class Config:
@@ -25,7 +25,7 @@ Basic Usage:
     config = build_config(Config)  # Automatically parses sys.argv
 
 Advanced Usage:
-    from dataclass_config import cli_help, cli_short, cli_choices, cli_file_loadable
+    from dataclass_args import cli_help, cli_short, cli_choices, cli_file_loadable
 
     @dataclass
     class Config:

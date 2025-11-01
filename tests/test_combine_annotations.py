@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from dataclass_config import (
+from dataclass_args import (
     build_config,
     cli_exclude,
     cli_file_loadable,
@@ -221,7 +221,7 @@ class TestCombineAnnotations:
         """Test that combined help text appears in argument parser."""
         import argparse
 
-        from dataclass_config import GenericConfigBuilder
+        from dataclass_args import GenericConfigBuilder
 
         @dataclass
         class Config:
