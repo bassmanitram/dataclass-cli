@@ -792,7 +792,7 @@ pytest -v
 This project maintains **94%+ code coverage**. Coverage reports are generated automatically when running tests.
 
 - **Quick check**: `make coverage`
-- **Detailed report**: See `htmlcov/index.html`  
+- **Detailed report**: See `htmlcov/index.html`
 - **Coverage docs**: [COVERAGE.md](COVERAGE.md)
 
 All code changes should maintain or improve coverage. The minimum required coverage is 90%.

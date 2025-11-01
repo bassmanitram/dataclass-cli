@@ -259,7 +259,7 @@ import uuid
 @dataclass
 class Config:
     name: str = cli_help("Application name")
-    
+
     # Hidden from CLI
     instance_id: str = cli_exclude(default_factory=lambda: str(uuid.uuid4()))
     _internal: str = cli_exclude(default="internal_value")
@@ -349,13 +349,13 @@ class Config:
         cli_help("Deployment environment"),
         default='dev'
     )
-    
+
     # Combine short + help + positional
     input_file: str = combine_annotations(
         cli_positional(),
         cli_help("Input file path")
     )
-    
+
     # Combine short + help
     port: int = combine_annotations(
         cli_short('p'),
@@ -476,18 +476,18 @@ class Config:
     count: int = 10
     rate: float = 1.5
     debug: bool = False
-    
+
     # Collections
     tags: List[str] = None
     ports: List[int] = None
     settings: Dict[str, Any] = None
-    
+
     # Optional
     timeout: Optional[int] = None
-    
+
     # Path
     output: Path = Path("/tmp/output")
-    
+
     # Enum
     status: Status = Status.ACTIVE
 ```
@@ -671,7 +671,7 @@ Add custom validation in `__post_init__`:
 class Config:
     port: int = cli_short('p', default=8000)
     max_connections: int = 100
-    
+
     def __post_init__(self):
         if self.port < 1024:
             raise ValueError("Port must be >= 1024")
@@ -695,7 +695,7 @@ class AppConfig:
     name: str
     debug: bool = False
     database: Dict[str, Any] = None  # Load from config file
-    
+
 config = build_config(AppConfig, args=[
     '--name', 'myapp',
     '--database', 'db_config.json'
@@ -717,7 +717,7 @@ import os
 class Config:
     api_key: str = os.getenv('API_KEY', '')
     port: int = cli_short('p', default=8000)
-    
+
     def __post_init__(self):
         if not self.api_key:
             raise ValueError("API_KEY environment variable required")

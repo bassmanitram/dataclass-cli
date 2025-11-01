@@ -34,7 +34,7 @@ echo ""
 # Check if we should open the browser
 if [ "$1" = "--open" ] || [ "$1" = "-o" ]; then
     echo -e "${BLUE}Opening HTML report in browser...${NC}"
-    
+
     # Try different browser commands
     if command -v xdg-open &> /dev/null; then
         xdg-open htmlcov/index.html

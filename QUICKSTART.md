@@ -344,15 +344,15 @@ $ python build.py -p myapp -d -v                # Deploy with verbose
 
 ## Key Features Summary
 
-✅ **Automatic CLI generation** from dataclasses  
-✅ **Short options** (`-n`) and long options (`--name`)  
-✅ **Positional arguments** for required inputs  
-✅ **Boolean flags** with `--flag` and `--no-flag`  
-✅ **Value validation** with `cli_choices()`  
-✅ **Type-safe** parsing for all Python types  
-✅ **Combine features** with `combine_annotations()`  
-✅ **File loading** with `@filename` syntax  
-✅ **Configuration files** (JSON, YAML, TOML)  
+✅ **Automatic CLI generation** from dataclasses
+✅ **Short options** (`-n`) and long options (`--name`)
+✅ **Positional arguments** for required inputs
+✅ **Boolean flags** with `--flag` and `--no-flag`
+✅ **Value validation** with `cli_choices()`
+✅ **Type-safe** parsing for all Python types
+✅ **Combine features** with `combine_annotations()`
+✅ **File loading** with `@filename` syntax
+✅ **Configuration files** (JSON, YAML, TOML)
 
 That's it! You now know enough to build powerful CLIs with dataclass-config. 🚀
 

@@ -178,7 +178,7 @@ def test_yaml_loading():
 - name: Run tests with coverage
   run: |
     pytest --cov=dataclass_config --cov-report=xml
-    
+
 - name: Upload coverage to Codecov
   uses: codecov/codecov-action@v3
   with:
@@ -218,6 +218,6 @@ def test_yaml_loading():
 
 ---
 
-**Last Updated:** 2024-11-01  
-**Coverage Version:** 94.35%  
+**Last Updated:** 2024-11-01
+**Coverage Version:** 94.35%
 **Test Count:** 230 tests passing

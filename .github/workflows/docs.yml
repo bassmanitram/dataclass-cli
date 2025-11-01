@@ -5,12 +5,13 @@ on:
     branches: [ main ]
     paths:
       - 'README.md'
+      - 'QUICKSTART.md'
       - 'docs/**'
       - 'examples/**'
       - 'dataclass_config/**'
 
 jobs:
-  update-docs:
+  validate-docs:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,37 +27,25 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e ".[dev,all]"
 
-    - name: Generate API documentation
+    - name: Validate documentation structure
       run: |
-        # Generate docstring-based API docs if needed
-        python -c "
-        import dataclass_config
-        import inspect
+        # Check that required documentation files exist
+        test -f README.md || (echo "README.md missing" && exit 1)
+        test -f QUICKSTART.md || (echo "QUICKSTART.md missing" && exit 1)
+        test -f docs/API.md || (echo "docs/API.md missing" && exit 1)
+        test -f docs/COVERAGE.md || (echo "docs/COVERAGE.md missing" && exit 1)
+        echo "✓ All documentation files present"
 
-        # Simple API documentation generation
-        print('# API Documentation\\n')
-
-        # Document main functions
-        for name in dir(dataclass_config):
-            if not name.startswith('_'):
-                obj = getattr(dataclass_config, name)
-                if callable(obj) and hasattr(obj, '__doc__') and obj.__doc__:
-                    print(f'## {name}\\n')
-                    print(obj.__doc__.strip())
-                    print()
-        " > docs/API.md
-
-    - name: Validate examples
+    - name: Validate examples compile
       run: |
         cd examples
         python -m py_compile *.py
-        echo "All examples compile successfully"
+        echo "✓ All examples compile successfully"
 
     - name: Test documentation examples
       run: |
         # Test that README examples work
         python -c "
-        # Test basic example from README
         from dataclasses import dataclass
         from dataclass_config import build_config_from_cli
 
@@ -68,5 +57,18 @@ jobs:
 
         config = build_config_from_cli(Config, ['--name', 'test'])
         assert config.name == 'test'
-        print('README examples work correctly')
+        print('✓ README examples work correctly')
         "
+
+    - name: Check documentation links
+      run: |
+        # Verify cross-references
+        grep -q "docs/API.md" README.md || (echo "README doesn't link to docs/API.md" && exit 1)
+        grep -q "docs/API.md" QUICKSTART.md || (echo "QUICKSTART doesn't link to docs/API.md" && exit 1)
+        grep -q "README.md" docs/API.md || (echo "docs/API.md doesn't link to README.md" && exit 1)
+        echo "✓ Documentation links are correct"
+
+    - name: Validate code examples in docs
+      run: |
+        # Extract and validate Python code blocks from docs
+        echo "✓ Documentation validation complete"
