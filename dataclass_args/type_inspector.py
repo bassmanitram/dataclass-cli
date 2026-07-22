@@ -15,6 +15,12 @@ except ImportError:
         get_origin,
     )
 
+# Python 3.10+ PEP 604 union type support (X | Y syntax)
+try:
+    from types import UnionType as _UnionType  # type: ignore[attr-defined]
+except ImportError:
+    _UnionType = None  # type: ignore[assignment,misc]  # Python < 3.10
+
 
 class TypeInspector:
     """
@@ -35,12 +41,13 @@ class TypeInspector:
 
         Returns:
             Tuple of (origin, args)
-            - origin: Base type (e.g., list, dict, Union)
+            - origin: Base type (e.g., list, dict, Union, UnionType)
             - args: Type parameters (e.g., (str,) for List[str])
 
         Examples:
             List[str] → (list, (str,))
             Optional[int] → (Union, (int, NoneType))
+            int | None → (UnionType, (int, NoneType))  # Python 3.10+
             Dict[str, Any] → (dict, (str, Any))
             str → (None, ())
         """
@@ -53,17 +60,19 @@ class TypeInspector:
         """
         Check if type is Optional (Union with None).
 
+        Handles both typing.Optional[T] / typing.Union[T, None] and
+        PEP 604 syntax (T | None) on Python 3.10+.
+
         Args:
             field_type: Type to check
 
         Returns:
-            True if type is Optional[T] or Union[T, None]
+            True if type is Optional[T], Union[T, None], or T | None
         """
         origin, args = TypeInspector.get_origin_and_args(field_type)
 
-        # Check for Union[T, None] pattern
         if origin is not None:
-            # Handle Union types (includes Optional)
+            # Check typing.Union (includes Optional)
             try:
                 from typing import Union
 
@@ -72,12 +81,19 @@ class TypeInspector:
             except ImportError:
                 pass
 
+            # Check PEP 604 union type (Python 3.10+): X | None
+            if _UnionType is not None and origin is _UnionType:
+                return type(None) in args
+
         return False
 
     @staticmethod
     def unwrap_optional(field_type: Type) -> Type:
         """
         Unwrap Optional[T] to get T.
+
+        Handles both typing.Optional[T] / typing.Union[T, None] and
+        PEP 604 syntax (T | None) on Python 3.10+.
 
         Args:
             field_type: Type that may be Optional
@@ -88,6 +104,7 @@ class TypeInspector:
         Examples:
             Optional[str] → str
             Union[int, None] → int
+            int | None → int  (Python 3.10+)
             str → str
         """
         if TypeInspector.is_optional(field_type):

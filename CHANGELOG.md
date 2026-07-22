@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [1.5.1] - 2026-07-22
+
+### Fixed
+- **PEP 604 union types not recognized as Optional** - `int | None` (Python 3.10+ syntax)
+  was not detected as Optional by TypeInspector, causing non-string Optional fields to be
+  parsed as strings instead of their declared type. Now correctly handles both
+  `typing.Optional[T]` and PEP 604 `T | None` syntax.
+
 ## [1.5.0] - 2026-06-23
 
 ### Added
