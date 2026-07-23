@@ -438,3 +438,134 @@ class TestBuilderComplexScenarios:
         finally:
             Path(base_path).unlink()
             Path(settings_path).unlink()
+
+
+class TestBuilderCoverageGaps:
+    """Tests for uncovered paths in builder.py."""
+
+    def test_base_configs_list_with_invalid_item_type(self):
+        """base_configs list with non-str/non-dict item raises ConfigurationError."""
+
+        @dataclass
+        class Config:
+            name: str = "default"
+
+        with pytest.raises(ConfigurationError, match="must be str or dict"):
+            build_config(
+                Config, args=["--name", "x"], base_configs=[{"name": "base"}, 42]
+            )
+
+    def test_base_configs_invalid_type_not_str_dict_list(self):
+        """base_configs with invalid type (not str/dict/list) raises ConfigurationError."""
+
+        @dataclass
+        class Config:
+            name: str = "default"
+
+        with pytest.raises(ConfigurationError, match="must be str, dict, or list"):
+            build_config(Config, args=["--name", "x"], base_configs=123)
+
+    def test_append_bare_list_list_type_fallback(self):
+        """List[List] without type params falls back to str element type."""
+        from dataclass_args import cli_append, combine_annotations
+
+        @dataclass
+        class Config:
+            items: List[List] = combine_annotations(
+                cli_append(nargs=2), default_factory=list
+            )
+
+        result = build_config(Config, ["--items", "a", "b"])
+        assert result.items == [["a", "b"]]
+
+    def test_get_argument_type_path_fallback(self):
+        """Path type falls back to str in argparse (complex type handling)."""
+
+        @dataclass
+        class Config:
+            output: Path = Path("/default")
+
+        result = build_config(Config, ["--output", "/tmp/test"])
+        # Path is a complex type, _get_argument_type returns str
+        # So the parsed value is a string, not a Path object
+        assert result.output == "/tmp/test"
+        assert isinstance(result.output, str)
+
+    def test_nested_dict_field_with_empty_prefix_override(self):
+        """Dict field in nested dataclass with prefix='' uses override_name as-is."""
+        from typing import Any
+
+        from dataclass_args import cli_nested
+
+        @dataclass
+        class Inner:
+            settings: Dict[str, Any] = None
+
+        @dataclass
+        class Config:
+            inner: Inner = cli_nested(prefix="", default_factory=Inner)
+
+        # Create JSON file
+        import json
+        import os
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump({"host": "localhost"}, f)
+            temp_path = f.name
+
+        try:
+            result = build_config(Config, ["--settings", temp_path, "--s", "port:3000"])
+            assert result.inner.settings["host"] == "localhost"
+            assert result.inner.settings["port"] == 3000
+        finally:
+            os.unlink(temp_path)
+
+    def test_base_configs_file_load_failure_in_list(self):
+        """base_configs list with nonexistent file path raises ConfigurationError."""
+
+        @dataclass
+        class Config:
+            name: str = "default"
+
+        with pytest.raises(ConfigurationError, match="Failed to load"):
+            build_config(Config, args=[], base_configs=["/nonexistent/path.yaml"])
+
+    def test_append_min_args_violation_single_value(self):
+        """cli_append with min_args validation rejects too few arguments."""
+        from dataclass_args import cli_append, combine_annotations
+
+        @dataclass
+        class Config:
+            items: List[List[str]] = combine_annotations(
+                cli_append(min_args=2, max_args=3),
+                default_factory=list,
+            )
+
+        with pytest.raises(ConfigurationError, match="Expected at least 2"):
+            build_config(Config, ["--items", "only_one"])
+
+    def test_append_on_non_list_typed_field(self):
+        """Append on non-List typed field falls back to str arg_type."""
+        from dataclass_args import cli_append
+
+        @dataclass
+        class Config:
+            values: str = cli_append(default_factory=list)
+
+        result = build_config(Config, ["--values", "a", "--values", "b"])
+        assert result.values == ["a", "b"]
+
+    def test_append_min_max_no_occurrences_provided(self):
+        """Append with min/max but no occurrences results in empty list."""
+        from dataclass_args import cli_append, combine_annotations
+
+        @dataclass
+        class Config:
+            items: List[List[str]] = combine_annotations(
+                cli_append(min_args=1, max_args=2),
+                default_factory=list,
+            )
+
+        result = build_config(Config, [])
+        assert result.items == []

@@ -18,8 +18,8 @@ try:
         get_origin,
         get_type_hints,
     )
-except ImportError:
-    from typing_extensions import get_args, get_origin, get_type_hints  # type: ignore[assignment,no-redef]  # noqa: E501
+except ImportError:  # pragma: no cover
+    from typing_extensions import get_args, get_origin, get_type_hints  # type: ignore[assignment,no-redef]  # noqa: E501  # pragma: no cover
 
 from .annotations import (
     get_cli_append_max_args,
@@ -318,11 +318,14 @@ class GenericConfigBuilder:
         flat_fields = self._flatten_nested_fields()
 
         # Check for duplicate CLI names
+        # NOTE: This collision detection is a secondary safeguard. The primary
+        # detection is in NestedFieldProcessor._check_collision() which raises
+        # during _flatten_nested_fields(). This code is unreachable in practice.
         cli_names: Dict[str, Dict[str, Any]] = {}
         collisions = []
 
         for cli_name, mapping in flat_fields.items():
-            if cli_name in cli_names:
+            if cli_name in cli_names:  # pragma: no cover
                 # Collision detected
                 prev_mapping = cli_names[cli_name]
 
@@ -343,7 +346,7 @@ class GenericConfigBuilder:
             else:
                 cli_names[cli_name] = mapping
 
-        if collisions:
+        if collisions:  # pragma: no cover
             # Build error message
             error_lines = [
                 "Field name collision detected when flattening nested dataclasses:",

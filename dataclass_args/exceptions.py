@@ -19,3 +19,9 @@ class FileLoadingError(ConfigBuilderError):
     """Exception raised when file loading fails."""
 
     pass
+
+
+class InstantiationError(Exception):
+    """Exception raised when object instantiation from config fails."""
+
+    pass

@@ -688,6 +688,177 @@ class TestBuildConfigHelperFunction:
         assert config.db.port == 5432
 
 
+class TestNestedProcessorErrorPaths:
+    """Tests for error handling in nested_processor.py."""
+
+    def test_nested_dict_field_from_file(self):
+        """Nested dict field loads from file via load_structured_file."""
+        from typing import Any
+
+        @dataclass
+        class SettingsConfig:
+            settings: Dict[str, Any] = None
+
+        @dataclass
+        class AppConfig:
+            app_name: str = "test"
+            config: SettingsConfig = cli_nested(
+                prefix="n", default_factory=SettingsConfig
+            )
+
+        # Create a JSON file with dict content
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump({"key1": "value1", "port": 8080}, f)
+            temp_path = f.name
+
+        try:
+            result = build_config(AppConfig, ["--n-settings", temp_path])
+            assert result.config.settings == {"key1": "value1", "port": 8080}
+        finally:
+            os.unlink(temp_path)
+
+    def test_nested_dict_field_nonexistent_file_error(self):
+        """Nested dict field with nonexistent file raises error."""
+        from typing import Any
+
+        from dataclass_args.exceptions import ConfigurationError
+
+        @dataclass
+        class SettingsConfig:
+            settings: Dict[str, Any] = None
+
+        @dataclass
+        class AppConfig:
+            app_name: str = "test"
+            config: SettingsConfig = cli_nested(
+                prefix="n", default_factory=SettingsConfig
+            )
+
+        with pytest.raises((ConfigurationError, SystemExit)):
+            build_config(AppConfig, ["--n-settings", "/nonexistent/file.json"])
+
+    def test_nested_dict_field_with_property_overrides(self):
+        """Nested dict field supports property overrides."""
+        from typing import Any
+
+        @dataclass
+        class SettingsConfig:
+            settings: Dict[str, Any] = None
+
+        @dataclass
+        class AppConfig:
+            app_name: str = "test"
+            config: SettingsConfig = cli_nested(
+                prefix="n", default_factory=SettingsConfig
+            )
+
+        # Create a JSON file with base config
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump({"host": "localhost", "port": 5432}, f)
+            temp_path = f.name
+
+        try:
+            result = build_config(
+                AppConfig,
+                ["--n-settings", temp_path, "--n-s", "port:9999"],
+            )
+            assert result.config.settings["host"] == "localhost"
+            assert result.config.settings["port"] == 9999
+        finally:
+            os.unlink(temp_path)
+
+    def test_nested_reconstruction_failure(self):
+        """Nested dataclass construction failure raises ConfigurationError."""
+        from dataclass_args.exceptions import ConfigurationError
+
+        @dataclass
+        class ValidatedConfig:
+            host: str = "localhost"
+            port: int = 5432
+
+            def __post_init__(self):
+                if self.port < 0:
+                    raise ValueError(f"port must be non-negative, got {self.port}")
+
+        @dataclass
+        class AppConfig:
+            app_name: str = "test"
+            server: ValidatedConfig = cli_nested(
+                prefix="srv", default_factory=ValidatedConfig
+            )
+
+        with pytest.raises(
+            ConfigurationError, match="Failed to create nested dataclass"
+        ):
+            build_config(AppConfig, ["--srv-port", "-1"])
+
+    def test_nested_file_loadable_error(self):
+        """Nested file-loadable field with bad path raises ConfigurationError."""
+        from dataclass_args import cli_file_loadable
+        from dataclass_args.exceptions import ConfigurationError
+
+        @dataclass
+        class ContentConfig:
+            content: str = cli_file_loadable(default="")
+
+        @dataclass
+        class AppConfig:
+            app_name: str = "test"
+            docs: ContentConfig = cli_nested(
+                prefix="doc", default_factory=ContentConfig
+            )
+
+        with pytest.raises((ConfigurationError, SystemExit)):
+            build_config(AppConfig, ["--doc-content", "@/nonexistent/path.txt"])
+
+    def test_nested_with_prebuilt_dataclass_in_base_configs(self):
+        """Pre-built dataclass in base_configs gets merged with CLI overrides."""
+
+        @dataclass
+        class DatabaseConfig:
+            host: str = "localhost"
+            port: int = 5432
+
+        @dataclass
+        class AppConfig:
+            name: str = "app"
+            db: DatabaseConfig = cli_nested(prefix="db", default_factory=DatabaseConfig)
+
+        # Pre-built instance in base_configs
+        prebuilt = DatabaseConfig(host="prebuilt-host", port=9999)
+        result = build_config(
+            AppConfig,
+            args=["--db-port", "3306"],
+            base_configs={"db": prebuilt},
+        )
+        # host from prebuilt, port overridden by CLI
+        assert result.db.host == "prebuilt-host"
+        assert result.db.port == 3306
+
+    def test_nested_with_non_dict_non_dataclass_in_config(self):
+        """Non-dict non-dataclass value in base_configs starts fresh dict."""
+
+        @dataclass
+        class DatabaseConfig:
+            host: str = "localhost"
+            port: int = 5432
+
+        @dataclass
+        class AppConfig:
+            name: str = "app"
+            db: DatabaseConfig = cli_nested(prefix="db", default_factory=DatabaseConfig)
+
+        # String value (invalid type for nested field) in base_configs
+        result = build_config(
+            AppConfig,
+            args=["--db-host", "cli-host"],
+            base_configs={"db": "invalid_string_value"},
+        )
+        # String gets discarded, CLI value used
+        assert result.db.host == "cli-host"
+        assert result.db.port == 5432  # default
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
 

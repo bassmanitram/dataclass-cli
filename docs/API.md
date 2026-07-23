@@ -10,6 +10,7 @@ Complete API documentation for dataclass-args.
 - [Type Support](#type-support)
 - [Exception Classes](#exception-classes)
 - [Utility Functions](#utility-functions)
+- [Object Instantiation](#object-instantiation)
 - [Best Practices](#best-practices)
 - [Migration Guide](#migration-guide)
 
@@ -925,6 +926,32 @@ Exception raised when file loading fails.
 
 ---
 
+### `InstantiationError`
+
+Exception raised when object instantiation from configuration fails.
+
+**Raised when:**
+- String config value has no registry or key not found in registry
+- Import of target class path fails (module not found, attribute not found)
+- Object construction fails (missing required args, validation errors)
+- Maximum recursion depth exceeded
+- Attribute traversal fails (`_attr_` path doesn't exist)
+
+**Note:** `InstantiationError` is a direct subclass of `Exception`, not `ConfigBuilderError`. It represents a distinct concern (object construction from config).
+
+**Example:**
+```python
+from dataclass_args import instantiate, InstantiationError
+
+try:
+    obj = instantiate({"_target_": "nonexistent.module.Class"})
+except InstantiationError as e:
+    print(f"Instantiation failed: {e}")
+    # Error message includes path context for debugging
+```
+
+---
+
 ## Utility Functions
 
 ### `load_structured_file(file_path)`
@@ -973,6 +1000,131 @@ Check if a value is a file-loadable string (starts with '@').
 
 **Returns:**
 - `bool`: True if value is a string starting with '@'
+
+
+---
+
+## Object Instantiation
+
+### `instantiate(config, *, registry=None, target_key="_target_", type_key="type", attr_key="_attr_", recursive=True, max_depth=10)`
+
+Construct a Python object from a configuration value using convention-based dispatch.
+
+**Parameters:**
+- `config` (Any): The configuration value to instantiate from. Can be:
+  - `None` — returns None
+  - Non-dict, non-string — returned as-is (pass-through)
+  - `str` — looked up in registry
+  - `dict` — dispatched based on special keys
+- `registry` (Optional[Dict[str, str]]): Mapping of type names to importable class paths. Required for string configs and dicts with `type` key.
+- `target_key` (str): Dict key indicating a direct import path. Default: `"_target_"`
+- `type_key` (str): Dict key indicating a registry lookup name. Default: `"type"`
+- `attr_key` (Optional[str]): Dict key indicating post-construction attribute traversal. Set to `None` to disable. Default: `"_attr_"`
+- `recursive` (bool): Whether to recursively resolve nested dicts in kwargs based on `__init__` type annotations. Default: `True`
+- `max_depth` (int): Maximum recursion depth to prevent infinite loops. Default: `10`
+
+**Returns:**
+- The instantiated object, or the original value for pass-through cases.
+
+**Raises:**
+- `InstantiationError`: When instantiation fails. Error messages include the resolution path for debugging (e.g., `"root.database.connection_pool"`).
+
+**Dispatch Rules (priority order):**
+
+| Rule | Condition | Behavior |
+|------|-----------|----------|
+| 1 | `config is None` | Return `None` |
+| 2 | Not dict and not string | Return as-is (pass-through) |
+| 3 | String + registry | Lookup class path in registry, call `cls()` |
+| 4 | Dict with `_target_` key | Import class from path, call `cls(**remaining_kwargs)` |
+| 5 | Dict with `type` key + registry | Lookup in registry, call `cls(**remaining_kwargs)` |
+| 6 | Dict with neither key | Return as-is (plain dict) |
+
+**Examples:**
+
+```python
+from dataclass_args import instantiate, InstantiationError
+
+# Rule 1: None pass-through
+assert instantiate(None) is None
+
+# Rule 2: Non-dict/non-string pass-through
+assert instantiate(42) == 42
+
+# Rule 3: String + registry
+registry = {"docker": "myapp.sandboxes.DockerSandbox"}
+sandbox = instantiate("docker", registry=registry)
+
+# Rule 4: Dict with _target_
+config = {
+    "_target_": "myapp.sandboxes.DockerSandbox",
+    "image": "python:3.11",
+    "memory": "512m",
+}
+sandbox = instantiate(config)
+
+# Rule 5: Dict with type + registry
+config = {"type": "docker", "image": "python:3.11"}
+sandbox = instantiate(config, registry=registry)
+
+# Rule 6: Plain dict (no special keys)
+plain = {"key": "value"}
+assert instantiate(plain) == {"key": "value"}
+```
+
+**Attribute Traversal (`_attr_`):**
+
+After constructing an object, if the dict contained an `_attr_` key, the dotted path is traversed on the result:
+
+```python
+config = {
+    "_target_": "myapp.Toolkit",
+    "_attr_": "tools.search.engine",
+}
+# Constructs Toolkit(), then returns obj.tools.search.engine
+engine = instantiate(config)
+```
+
+**Recursive Resolution:**
+
+Nested dicts are recursively resolved based on the target class's `__init__` type annotations:
+
+```python
+config = {
+    "_target_": "myapp.Server",
+    "name": "prod",
+    "database": {
+        "_target_": "myapp.Database",
+        "host": "db.example.com",
+        "port": 5432,
+    },
+}
+server = instantiate(config)
+# server.database is a Database instance (recursively resolved)
+```
+
+List elements with dispatch keys are also resolved:
+
+```python
+config = {
+    "_target_": "myapp.Pipeline",
+    "steps": [
+        {"_target_": "myapp.steps.Tokenize"},
+        {"_target_": "myapp.steps.Embed", "model": "ada-002"},
+    ],
+}
+pipeline = instantiate(config)
+# pipeline.steps contains [Tokenize(), Embed(model="ada-002")]
+```
+
+**Use Cases:**
+- Factory pattern: config files describe objects declaratively
+- Plugin systems: registry maps short names to implementations
+- Config-driven architecture: entire object graphs from YAML/JSON
+- Hydra/OmegaConf-style configuration
+
+**See Also:**
+- [README: Object Instantiation](../README.md#object-instantiation)
 
 ---
 

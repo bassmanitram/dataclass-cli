@@ -12,6 +12,7 @@ with advanced features including:
 - Hierarchical property overrides for dictionary fields
 - Nested dataclass flattening for complex configurations
 - Post-load field resolution via resolver functions
+- Generic object instantiation from configuration values
 - Comprehensive validation and error handling
 - Automatic help text generation
 
@@ -76,6 +77,18 @@ Resolver Usage:
 
     # Usage: --backend backend.yaml --b type:redis
     config = build_config(AppConfig)
+
+Instantiation Usage:
+    from dataclass_args import instantiate
+
+    # Direct target import
+    obj = instantiate({"_target_": "pathlib.Path", "args": ["/tmp"]})
+
+    # Registry-based lookup
+    registry = {"docker": "myapp.sandboxes.DockerSandbox"}
+    obj = instantiate("docker", registry=registry)
+    obj = instantiate({"type": "docker", "image": "python:3.11"},
+                      registry=registry)
 """
 
 from .annotations import (
@@ -109,17 +122,25 @@ from .annotations import (
     is_cli_resolve,
 )
 from .builder import GenericConfigBuilder, build_config, build_config_from_cli
-from .exceptions import ConfigBuilderError, ConfigurationError, FileLoadingError
+from .exceptions import (
+    ConfigBuilderError,
+    ConfigurationError,
+    FileLoadingError,
+    InstantiationError,
+)
 from .file_loading import is_file_loadable_value, load_file_content
+from .instantiate import instantiate
 from .utils import load_structured_file
 
-__version__ = "1.5.1"
+__version__ = "1.6.0"
 
 __all__ = [
     # Main API
     "build_config",
     "build_config_from_cli",
     "GenericConfigBuilder",
+    # Instantiation
+    "instantiate",
     # Annotations
     "cli_help",
     "cli_short",
@@ -158,4 +179,5 @@ __all__ = [
     "ConfigBuilderError",
     "ConfigurationError",
     "FileLoadingError",
+    "InstantiationError",
 ]

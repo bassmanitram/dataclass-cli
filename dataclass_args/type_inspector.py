@@ -9,8 +9,8 @@ from typing import Any, Optional, Tuple, Type
 # Import typing utilities with Python 3.8+ compatibility
 try:
     from typing import get_args, get_origin  # type: ignore[attr-defined]
-except ImportError:
-    from typing_extensions import (  # type: ignore[assignment,no-redef]
+except ImportError:  # pragma: no cover
+    from typing_extensions import (  # type: ignore[assignment,no-redef]  # pragma: no cover
         get_args,
         get_origin,
     )
@@ -18,8 +18,8 @@ except ImportError:
 # Python 3.10+ PEP 604 union type support (X | Y syntax)
 try:
     from types import UnionType as _UnionType  # type: ignore[attr-defined]
-except ImportError:
-    _UnionType = None  # type: ignore[assignment,misc]  # Python < 3.10
+except ImportError:  # pragma: no cover
+    _UnionType = None  # type: ignore[assignment,misc]  # pragma: no cover
 
 
 class TypeInspector:

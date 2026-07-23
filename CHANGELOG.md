@@ -5,6 +5,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.6.0] - 2025-06-28
+
+### Added
+- **Generic Object Instantiation with `instantiate()`** - Construct Python objects from
+  configuration values using convention-based dispatch
+  - String + registry → zero-arg class lookup
+  - Dict with `_target_` → direct class import and construction
+  - Dict with `type` + registry → registry-based lookup and construction
+  - `_attr_` key for post-construction attribute traversal
+  - Recursive resolution of nested dicts guided by `__init__` type annotations
+  - List element resolution for dicts with dispatch keys
+  - Configurable `target_key`, `type_key`, `attr_key` parameters
+  - `max_depth` guard against infinite recursion
+  - Path-context error messages for debugging nested configs
+  - `InstantiationError` exception for all failure cases
+
 ## [1.5.1] - 2026-07-22
 
 ### Fixed

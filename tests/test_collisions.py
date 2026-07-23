@@ -181,3 +181,14 @@ class TestShortOptionCollisions:
         # Should not raise - different field names, no short options
         builder = GenericConfigBuilder(Outer)
         assert builder is not None
+
+    def test_short_option_collision_top_level_fields(self):
+        """Short option collision between two top-level (non-nested) fields."""
+
+        @dataclass
+        class Config:
+            name: str = cli_short("x", default="name")
+            extra: str = cli_short("x", default="extra")
+
+        with pytest.raises(ConfigBuilderError, match="Short option collision"):
+            GenericConfigBuilder(Config)

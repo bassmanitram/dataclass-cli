@@ -24,6 +24,7 @@ Generate command-line interfaces from Python dataclasses.
 - **[Config Merging](#configuration-merging)** - Combine configuration sources with hierarchical overrides
 - **[Flexible Types](#type-support)** - Support for `List`, `Dict`, `Optional`, and custom types
 - **[Field Resolution](#field-resolution)** - Transform config dicts into typed objects with `cli_resolve()`
+- **[Object Instantiation](#object-instantiation)** - Construct objects from config using `instantiate()`
 - **[Rich Annotations](#combining-annotations)** - Custom help text, exclusions, and combinations
 - **[Minimal Dependencies](#installation)** - Lightweight with optional format support
 ## Quick Start
@@ -962,6 +963,55 @@ config = build_config_from_cli(AppConfig, [
 ])
 ```
 
+### Object Instantiation
+
+Construct Python objects from configuration values using convention-based dispatch with `instantiate()`. Supports direct class import via `_target_`, registry-based lookup, recursive resolution, and post-construction attribute traversal.
+
+```python
+from dataclass_args import instantiate
+
+# Direct class import
+config = {
+    "_target_": "myapp.sandboxes.DockerSandbox",
+    "image": "python:3.11",
+    "memory": "512m",
+}
+sandbox = instantiate(config)
+
+# Registry-based lookup
+registry = {
+    "docker": "myapp.sandboxes.DockerSandbox",
+    "local": "myapp.sandboxes.LocalSandbox",
+}
+sandbox = instantiate("docker", registry=registry)
+
+# Dict with type key + registry
+config = {"type": "docker", "image": "python:3.11"}
+sandbox = instantiate(config, registry=registry)
+
+# Recursive resolution (nested objects)
+config = {
+    "_target_": "myapp.Server",
+    "name": "prod",
+    "database": {
+        "_target_": "myapp.Database",
+        "host": "db.example.com",
+    },
+}
+server = instantiate(config)
+# server.database is automatically instantiated as a Database object
+```
+
+**Dispatch Rules:**
+1. `None` → returns `None`
+2. Non-dict/non-string → pass-through (pre-built objects)
+3. String + registry → lookup and construct with no args
+4. Dict with `_target_` → import class, construct with remaining kwargs
+5. Dict with `type` + registry → lookup, construct with remaining kwargs
+6. Plain dict (no special keys) → return as-is
+
+**See also:** [Full API documentation](docs/API.md#object-instantiation)
+
 ### Custom Help and Annotations
 
 ```python
@@ -1575,6 +1625,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and changes.
 from dataclasses import dataclass
 from dataclass_args import (
     build_config,                # Main function
+    instantiate,                 # Object instantiation from config
     cli_short,                   # Short options: -n
     cli_positional,              # Positional args
     cli_choices,                 # Value validation
@@ -1584,6 +1635,7 @@ from dataclass_args import (
     cli_file_loadable,           # @file loading
     cli_resolve,                 # Post-load resolution
     combine_annotations,         # Combine features
+    InstantiationError,          # Instantiation failures
 )
 
 @dataclass
@@ -1628,6 +1680,10 @@ class Config:
     )
 # Build and use
 config = build_config(Config)
+
+# Instantiate objects from config
+obj = instantiate({"_target_": "myapp.MyClass", "param": "value"})
+obj = instantiate("my_type", registry={"my_type": "myapp.MyClass"})
 ```
 
 Define your dataclass, add annotations as needed, and call `build_config()` to parse command-line arguments.

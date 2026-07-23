@@ -3,7 +3,7 @@ Comprehensive tests for annotation functionality.
 """
 
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import List, Optional
 
 import pytest
 
@@ -426,3 +426,68 @@ class TestAnnotationInRealScenarios:
             import os
 
             os.unlink(prompt_file)
+
+
+class TestAnnotationCoverageGaps:
+    """Tests for uncovered annotation paths."""
+
+    def test_cli_append_with_help_kwarg(self):
+        """cli_append() with help kwarg stores it in metadata as cli_help."""
+        from dataclasses import fields
+
+        from dataclass_args import build_config, cli_append
+
+        @dataclass
+        class Config:
+            tags: List[str] = cli_append(help="Add a tag", default_factory=list)
+
+        # Verify metadata contains both cli_append and cli_help
+        field_obj = fields(Config)[0]
+        assert field_obj.metadata.get("cli_append") is True
+        assert field_obj.metadata.get("cli_help") == "Add a tag"
+
+        # Verify it works end-to-end
+        result = build_config(Config, ["--tags", "foo", "--tags", "bar"])
+        assert result.tags == ["foo", "bar"]
+
+    def test_combine_annotations_with_empty_metadata(self):
+        """combine_annotations handles annotation with empty/no metadata."""
+        from dataclasses import field as dc_field
+        from dataclasses import fields
+
+        from dataclass_args import cli_short, combine_annotations
+
+        # Create a plain field with empty metadata (simulates an annotation result
+        # that doesn't carry metadata)
+        plain = dc_field(default="plain_val", metadata={})
+
+        # combine_annotations should handle this gracefully
+        result = combine_annotations(plain, cli_short("n"), default="combined_val")
+
+        @dataclass
+        class Config:
+            name: str = result
+
+        field_obj = fields(Config)[0]
+        # cli_short metadata should be present
+        assert field_obj.metadata.get("cli_short") == "n"
+        assert field_obj.default == "combined_val"
+
+    def test_is_cli_included_with_no_field_obj(self):
+        """is_cli_included returns False when field_info has no field_obj."""
+        from dataclass_args.annotations import is_cli_included
+
+        # Empty dict — no 'field_obj' key
+        assert is_cli_included({}) is False
+
+    def test_is_cli_excluded_with_no_field_obj(self):
+        """is_cli_excluded returns False when field_info has no field_obj."""
+        from dataclass_args.annotations import is_cli_excluded
+
+        assert is_cli_excluded({}) is False
+
+    def test_is_cli_file_loadable_with_no_field_obj(self):
+        """is_cli_file_loadable returns False when field_info has no field_obj."""
+        from dataclass_args.annotations import is_cli_file_loadable
+
+        assert is_cli_file_loadable({}) is False

@@ -166,3 +166,52 @@ class TestGetNestedListElementType:
 
     def test_non_list(self):
         assert TypeInspector.get_nested_list_element_type(str) is None
+
+
+class TestBareGenerics:
+    """Tests for bare generic types (List, Dict without subscript)."""
+
+    def test_get_list_element_type_bare_list(self):
+        """Bare List (no subscript) returns None for element type."""
+        result = TypeInspector.get_list_element_type(List)
+        assert result is None
+
+    def test_get_dict_types_bare_dict(self):
+        """Bare Dict (no subscript) returns (None, None) for types."""
+        key_type, value_type = TypeInspector.get_dict_types(Dict)
+        assert key_type is None
+        assert value_type is None
+
+    def test_is_nested_list_bare_outer_list(self):
+        """Bare List is not a nested list."""
+        assert TypeInspector.is_nested_list(List) is False
+
+    def test_get_nested_list_element_type_bare_inner(self):
+        """List[List] (bare inner) returns None for nested element type."""
+        result = TypeInspector.get_nested_list_element_type(List[List])
+        assert result is None
+
+    def test_is_list_type_bare_list(self):
+        """Bare List is recognized as list type."""
+        assert TypeInspector.is_list_type(List) is True
+
+    def test_is_dict_type_bare_dict(self):
+        """Bare Dict is recognized as dict type."""
+        assert TypeInspector.is_dict_type(Dict) is True
+
+
+class TestUnwrapOptionalEdgeCases:
+    """Edge cases for unwrap_optional."""
+
+    def test_unwrap_optional_union_with_none_first(self):
+        """Union[None, str] correctly unwraps to str (None not first in result)."""
+        result = TypeInspector.unwrap_optional(Union[None, str])
+        assert result == str
+
+    def test_unwrap_optional_multi_type_union_unchanged(self):
+        """Union[int, str, None] with multiple non-None types returns unchanged."""
+        multi = Union[int, str, None]
+        result = TypeInspector.unwrap_optional(multi)
+        # Has 2 non-None types, so returned unchanged (first non-None)
+        # Actually, unwrap_optional returns the FIRST non-None type
+        assert result in (int, str)

@@ -11,15 +11,15 @@ try:
     import yaml
 
     HAS_YAML = True
-except ImportError:
-    HAS_YAML = False
+except ImportError:  # pragma: no cover
+    HAS_YAML = False  # pragma: no cover
 
 # Handle TOML imports for different Python versions
 if sys.version_info >= (3, 11):
     import tomllib
 
     HAS_TOML = True
-else:
+else:  # pragma: no cover
     try:
         import tomli as tomllib  # type: ignore[no-redef]
 

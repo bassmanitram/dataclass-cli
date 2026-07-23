@@ -448,5 +448,79 @@ class TestHomeDirectoryExpansion:
             load_file_content("~/nonexistent_file_12345.txt")
 
 
+class TestFileLoadingErrorPaths:
+    """Tests for error handling paths in file_loading.py."""
+
+    def test_load_file_content_unicode_decode_error(self):
+        """UnicodeDecodeError is caught and wrapped in FileLoadingError."""
+        with tempfile.NamedTemporaryFile(mode="wb", suffix=".bin", delete=False) as f:
+            # Write invalid UTF-8 bytes
+            f.write(bytes([0xFF, 0xFE, 0x00, 0x01, 0x80, 0x81, 0x82]))
+            f.flush()
+            temp_path = f.name
+
+        try:
+            with pytest.raises(FileLoadingError, match="Cannot decode file as UTF-8"):
+                load_file_content(temp_path)
+        finally:
+            os.unlink(temp_path)
+
+    def test_load_file_content_ioerror_during_read(self):
+        """IOError during file read is caught and wrapped in FileLoadingError."""
+        from unittest.mock import patch
+
+        # Patch os.access and Path methods to pass pre-read checks,
+        # then patch open to raise IOError during actual read
+        with patch("pathlib.Path.exists", return_value=True), patch(
+            "pathlib.Path.is_file", return_value=True
+        ), patch("os.access", return_value=True), patch(
+            "builtins.open", side_effect=IOError("disk error")
+        ):
+            with pytest.raises(FileLoadingError, match="Error reading file"):
+                load_file_content("/fake/path.txt")
+
+    def test_load_file_content_invalid_path_type_error(self):
+        """TypeError/ValueError from path processing is wrapped in FileLoadingError."""
+        from unittest.mock import patch
+
+        with patch("pathlib.Path.expanduser", side_effect=ValueError("bad path")):
+            with pytest.raises(FileLoadingError, match="Invalid file path"):
+                load_file_content("~/bad_path")
+
+    def test_process_file_loadable_value_empty_path_with_file_loadable_field(self):
+        """Empty file path raises ValueError when field IS file-loadable."""
+        from dataclasses import fields
+
+        from dataclass_args.annotations import cli_file_loadable
+
+        @dataclass
+        class TempConfig:
+            content: str = cli_file_loadable(default="")
+
+        # Get the field_info dict that the builder would create
+        field_obj = fields(TempConfig)[0]
+        field_info = {"field_obj": field_obj}
+
+        with pytest.raises(ValueError, match="Empty file path"):
+            process_file_loadable_value("@", "content", field_info)
+
+    def test_process_file_loadable_value_at_prefix_not_file_loadable(self):
+        """Field NOT marked file-loadable returns @value unchanged."""
+        from dataclasses import fields
+
+        from dataclass_args.annotations import cli_help
+
+        @dataclass
+        class TempConfig:
+            name: str = cli_help("Just a name", default="")
+
+        field_obj = fields(TempConfig)[0]
+        field_info = {"field_obj": field_obj}
+
+        # Field is NOT file-loadable, so @value passes through unchanged
+        result = process_file_loadable_value("@some_value", "name", field_info)
+        assert result == "@some_value"
+
+
 if __name__ == "__main__":
     pytest.main([__file__])

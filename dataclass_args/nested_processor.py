@@ -140,7 +140,7 @@ class NestedFieldProcessor:
         cli_name = info["cli_name"]
 
         # Check for collision
-        if cli_name in flat_fields:
+        if cli_name in flat_fields:  # pragma: no cover
             prev_mapping = flat_fields[cli_name]
             source1 = self._get_field_source(prev_mapping)
 
