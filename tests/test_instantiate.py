@@ -204,6 +204,16 @@ class TestDictWithTarget:
 
 
 class TestDictWithTargetErrors:
+    def test_target_non_string_raises_instantiation_error(self):
+        """Non-string _target_ value raises InstantiationError."""
+        with pytest.raises(InstantiationError, match="'_target_' must be a string"):
+            instantiate({"_target_": 123})
+
+    def test_target_list_raises_instantiation_error(self):
+        """List _target_ value raises InstantiationError."""
+        with pytest.raises(InstantiationError, match="'_target_' must be a string"):
+            instantiate({"_target_": ["pathlib", "Path"]})
+
     """Error cases for _target_ dispatch."""
 
     def test_bad_module_path(self):
@@ -244,6 +254,22 @@ class TestDictWithTargetErrors:
         with pytest.raises(InstantiationError, match="at 'root'"):
             instantiate(config)
 
+    def test_non_callable_target_raises(self):
+        """Non-callable target (e.g., a constant) raises InstantiationError."""
+        with pytest.raises(InstantiationError, match="not callable"):
+            instantiate({"_target_": "logging.DEBUG"})
+
+    def test_non_callable_nested_target_falls_through(self):
+        """Non-callable via nested import path raises InstantiationError."""
+        # This goes through _try_import_nested which skips non-callables,
+        # resulting in an import error since no callable resolution found
+        with pytest.raises(InstantiationError):
+            instantiate(
+                {
+                    "_target_": "tests.test_instantiate_fixtures.ClassWithConstant.CONSTANT_VALUE"
+                }
+            )
+
 
 class TestDictWithTypeAndRegistry:
     """Rule 5: Dict with type key + registry → lookup and construct."""
@@ -274,6 +300,18 @@ class TestDictWithTypeAndRegistry:
 
 
 class TestDictWithTypeErrors:
+    def test_type_non_string_raises_instantiation_error(self):
+        """Non-string type value raises InstantiationError."""
+        registry = {"docker": "pathlib.Path"}
+        with pytest.raises(InstantiationError, match="'type' must be a string"):
+            instantiate({"type": 42}, registry=registry)
+
+    def test_type_none_raises_instantiation_error(self):
+        """None type value raises InstantiationError."""
+        registry = {"docker": "pathlib.Path"}
+        with pytest.raises(InstantiationError, match="'type' must be a string"):
+            instantiate({"type": None}, registry=registry)
+
     """Error cases for type+registry dispatch."""
 
     def test_type_not_in_registry(self):
@@ -1024,6 +1062,54 @@ class TestInstantiateUnwrapPaths:
         # label annotation is Optional[str], unwraps to str (builtin)
         # -> _is_instantiable_type returns False -> dict passes through
         assert result.label == {"nested": "dict"}
+
+
+class TestAnnotationGuidedStringResolution:
+    """Tests for string kwarg resolution via annotation + registry."""
+
+    def test_string_kwarg_resolved_via_annotation_and_registry(self):
+        """String value for class-typed param resolves via registry."""
+        config = {
+            "_target_": f"{FIXTURES}.HasTypedField",
+            "component": "basic",
+        }
+        registry = {"basic": f"{FIXTURES}.BasicComponent"}
+        result = instantiate(config, registry=registry)
+        assert isinstance(
+            result.component,
+            __import__(
+                "tests.test_instantiate_fixtures", fromlist=["BasicComponent"]
+            ).BasicComponent,
+        )
+
+    def test_string_kwarg_not_in_registry_passes_through(self):
+        """String not in registry stays as string (no resolution)."""
+        config = {
+            "_target_": f"{FIXTURES}.HasTypedField",
+            "component": "unknown_type",
+        }
+        registry = {"basic": f"{FIXTURES}.BasicComponent"}
+        result = instantiate(config, registry=registry)
+        assert result.component == "unknown_type"
+
+    def test_string_kwarg_no_registry_passes_through(self):
+        """No registry means no string resolution."""
+        config = {
+            "_target_": f"{FIXTURES}.HasTypedField",
+            "component": "basic",
+        }
+        result = instantiate(config)
+        assert result.component == "basic"
+
+    def test_string_kwarg_builtin_annotation_passes_through(self):
+        """str/int annotation means no resolution even if in registry."""
+        config = {
+            "_target_": f"{FIXTURES}.HasStringField",
+            "name": "basic",
+        }
+        registry = {"basic": f"{FIXTURES}.BasicComponent"}
+        result = instantiate(config, registry=registry)
+        assert result.name == "basic"
 
 
 class TestPep604UnionUnwrap:

@@ -149,3 +149,30 @@ class HasOptionalStr:
     def __init__(self, name: str = "default", label: Optional[str] = None):
         self.name = name
         self.label = label
+
+
+class BasicComponent:
+    """Simple component class for registry resolution testing."""
+
+    def __init__(self):
+        self.name = "basic"
+
+
+class HasTypedField:
+    """Class with a typed field that should be resolved via registry."""
+
+    def __init__(self, component: BasicComponent = None):
+        self.component = component
+
+
+class HasStringField:
+    """Class with a plain string field (should NOT be resolved)."""
+
+    def __init__(self, name: str = "default"):
+        self.name = name
+
+
+class ClassWithConstant:
+    """Class with a non-callable class attribute."""
+
+    CONSTANT_VALUE = 42

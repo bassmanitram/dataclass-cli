@@ -259,6 +259,13 @@ def _from_dict(
     if target_key in config:
         kwargs = dict(config)  # Copy before mutating
         target_path = kwargs.pop(target_key)
+
+        if not isinstance(target_path, str):
+            raise InstantiationError(
+                f"'{target_key}' must be a string (class path), "
+                f"got {type(target_path).__name__} (at '{path}')"
+            )
+
         attr_path = kwargs.pop(attr_key, None) if attr_key else None
 
         cls = _import_target(target_path, path=path)
@@ -281,6 +288,13 @@ def _from_dict(
     if type_key in config and registry is not None:
         kwargs = dict(config)  # Copy before mutating
         type_name = kwargs.pop(type_key)
+
+        if not isinstance(type_name, str):
+            raise InstantiationError(
+                f"'{type_key}' must be a string, "
+                f"got {type(type_name).__name__} (at '{path}')"
+            )
+
         attr_path = kwargs.pop(attr_key, None) if attr_key else None
 
         if type_name not in registry:
@@ -382,6 +396,23 @@ def _resolve_kwargs(
                 attr_key=attr_key,
                 recursive=recursive,
                 max_depth=max_depth - 1,
+                path=child_path,
+            )
+        elif (
+            isinstance(value, str)
+            and registry is not None
+            and annotation is not None
+            and _is_instantiable_type(annotation)
+            and value in registry
+        ):
+            resolved[key] = _instantiate_impl(
+                config=value,
+                registry=registry,
+                target_key=target_key,
+                type_key=type_key,
+                attr_key=attr_key,
+                recursive=recursive,
+                max_depth=max_depth,
                 path=child_path,
             )
         else:
@@ -556,6 +587,12 @@ def _import_target(target_path: str, *, path: str) -> Type:
             f"(target: '{target_path}', at '{path}'): {exc}"
         ) from exc
 
+    if not callable(obj):
+        raise InstantiationError(
+            f"'{target_path}' resolved to {type(obj).__name__}, "
+            f"which is not callable (at '{path}')"
+        )
+
     return obj
 
 
@@ -590,6 +627,8 @@ def _try_import_nested(target_path: str, *, path: str) -> Optional[Any]:
         try:
             for attr in attr_parts:
                 obj = getattr(obj, attr)
+            if not callable(obj):
+                continue  # Skip non-callable results
             return obj
         except AttributeError:
             continue
