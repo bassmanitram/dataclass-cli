@@ -80,6 +80,54 @@ config = build_config_from_cli(
 )
 ```
 
+### `build_config_from_dict(config_class, config)`
+
+Build a dataclass instance from a plain dictionary with full resolution. No CLI, no argparse — recommended for Lambda handlers, SDKs, and test harnesses.
+
+**Parameters:**
+- `config_class` (Type[dataclass]): The dataclass to instantiate
+- `config` (Dict[str, Any]): Dictionary of field values
+
+**Returns:**
+- Instance of `config_class` with all values resolved
+
+**Raises:**
+- `TypeError`: If `config` is not a dict
+- `ConfigurationError`: If resolution fails
+
+**Features that work:**
+- Nested dataclass reconstruction (`cli_nested`)
+- `cli_resolve()` post-load resolution
+- Default value handling for omitted fields
+- `cli_exclude()` fields settable via dict
+
+**Features that do NOT work:**
+- `@file` loading (`cli_file_loadable`) — load files yourself before passing
+- `cli_choices()` validation — argparse enforces choices, not base_configs
+
+**Example:**
+```python
+from dataclass_args import build_config_from_dict
+
+@dataclass
+class AppConfig:
+    name: str = "default"
+    port: int = 8000
+    database: DatabaseConfig = cli_nested(prefix="db", default_factory=DatabaseConfig)
+
+# Build from dict (e.g., Lambda event, API payload, test fixture)
+config = build_config_from_dict(AppConfig, {
+    "name": "production",
+    "port": 8080,
+    "database": {"host": "prod-db.example.com", "port": 5432},
+})
+
+# Non-dict input raises TypeError with helpful message
+build_config_from_dict(AppConfig, "not_a_dict")  # TypeError
+```
+
+---
+
 ---
 
 ## Annotation Functions

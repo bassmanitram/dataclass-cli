@@ -121,7 +121,12 @@ from .annotations import (
     is_cli_positional,
     is_cli_resolve,
 )
-from .builder import GenericConfigBuilder, build_config, build_config_from_cli
+from .builder import (
+    GenericConfigBuilder,
+    build_config,
+    build_config_from_cli,
+    build_config_from_dict,
+)
 from .exceptions import (
     ConfigBuilderError,
     ConfigurationError,
@@ -132,12 +137,13 @@ from .file_loading import is_file_loadable_value, load_file_content
 from .instantiate import instantiate
 from .utils import load_structured_file
 
-__version__ = "1.6.0"
+__version__ = "1.7.0"
 
 __all__ = [
     # Main API
     "build_config",
     "build_config_from_cli",
+    "build_config_from_dict",
     "GenericConfigBuilder",
     # Instantiation
     "instantiate",

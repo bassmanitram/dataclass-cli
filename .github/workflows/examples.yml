@@ -72,6 +72,11 @@ jobs:
         cd examples
         python all_features_example.py -n "TestApp" -e staging -r us-east-1 -d
 
+    - name: Test programmatic example (no CLI args)
+      run: |
+        cd examples
+        python programmatic_example.py
+
     - name: Test help output for all examples
       run: |
         cd examples

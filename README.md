@@ -26,6 +26,7 @@ Generate command-line interfaces from Python dataclasses.
 - **[Field Resolution](#field-resolution)** - Transform config dicts into typed objects with `cli_resolve()`
 - **[Object Instantiation](#object-instantiation)** - Construct objects from config using `instantiate()`
 - **[Rich Annotations](#combining-annotations)** - Custom help text, exclusions, and combinations
+- **[Programmatic Usage](#programmatic-usage)** - Build configs from dicts without CLI via `build_config_from_dict()`
 - **[Minimal Dependencies](#installation)** - Lightweight with optional format support
 ## Quick Start
 
@@ -1242,6 +1243,42 @@ python examples/config_merging_example.py multi-source
 - [API Reference](#api-reference) - Full API documentation
 
 
+### Programmatic Usage
+
+For non-CLI contexts use `build_config_from_dict()` to build a dataclass instance directly from a dictionary without any argparse involvement:
+
+```python
+from dataclass_args import build_config_from_dict
+
+# Configuration from any source (API payload, DynamoDB, merged dicts, etc.)
+config_dict = {
+    "app_name": "production-api",
+    "port": 8080,
+    "database": {
+        "host": "rds-prod.amazonaws.com",
+        "port": 5432,
+    },
+}
+
+# One-liner: dict in, typed dataclass out
+config = build_config_from_dict(AppConfig, config_dict)
+```
+
+**Key behaviors:**
+- Nested dataclasses (`cli_nested`) reconstruct from nested dicts
+- `cli_resolve()` resolvers fire on assembled values
+- Fields with defaults work when omitted from the dict
+- `cli_exclude()` fields are settable (no CLI to exclude from)
+- Unknown keys are silently ignored
+- Only accepts `Dict[str, Any]` — raises `TypeError` for non-dict inputs
+
+**What does NOT work via dict:**
+- `@file` loading (`cli_file_loadable`) — file resolution happens in the argparse layer. Load files yourself before passing values.
+- `cli_choices()` validation — argparse enforces choices, `base_configs` bypasses that.
+
+**See also:** [`examples/programmatic_example.py`](examples/programmatic_example.py) for complete working examples.
+
+
 ## API Reference
 
 > **📖 Full API Documentation:** See [docs/API.md](docs/API.md) for complete API reference with detailed examples.
@@ -1266,6 +1303,16 @@ Generate CLI with additional options.
 config = build_config_from_cli(
     MyDataclass,
     args=['--name', 'test'],
+
+#### `build_config_from_dict(config_class, config)`
+
+Build a dataclass instance from a dictionary without CLI involvement. Recommended for Lambda handlers, SDKs, and test harnesses.
+
+```python
+from dataclass_args import build_config_from_dict
+
+config = build_config_from_dict(MyDataclass, {"name": "test", "port": 8080})
+```
 ```
 
 ### Annotations
@@ -1625,6 +1672,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and changes.
 from dataclasses import dataclass
 from dataclass_args import (
     build_config,                # Main function
+    build_config_from_dict,      # Programmatic (no CLI) config building
     instantiate,                 # Object instantiation from config
     cli_short,                   # Short options: -n
     cli_positional,              # Positional args
@@ -1686,4 +1734,4 @@ obj = instantiate({"_target_": "myapp.MyClass", "param": "value"})
 obj = instantiate("my_type", registry={"my_type": "myapp.MyClass"})
 ```
 
-Define your dataclass, add annotations as needed, and call `build_config()` to parse command-line arguments.
+Define your dataclass, add annotations as needed, and call `build_config()` for CLI or `build_config_from_dict()` for programmatic usage.

@@ -1348,3 +1348,47 @@ def build_config(
     return build_config_from_cli(
         config_class, args, base_configs=base_configs, description=description
     )
+
+
+def build_config_from_dict(
+    config_class: type,
+    config: dict,
+):
+    """
+    Build a dataclass instance from a dictionary with full resolution.
+
+    Applies the same processing pipeline as CLI-based construction:
+    - @file reference loading (for cli_file_loadable fields)
+    - cli_resolve() post-load resolution
+    - Nested dataclass reconstruction
+    - Configuration merging
+
+    But without argparse registration, argument parsing, or CLI awareness.
+
+    This is the recommended entry point for non-CLI contexts such as
+    Lambda handlers, programmatic SDKs, and test harnesses.
+
+    Args:
+        config_class: Dataclass type to instantiate
+        config: Dictionary of field values
+
+    Returns:
+        Instance of config_class with all values resolved
+
+    Raises:
+        ConfigurationError: If resolution fails
+        TypeError: If config is not a dict
+
+    Example:
+        config = build_config_from_dict(AppConfig, {
+            "model": "bedrock:claude-3",
+            "system_prompt": "@/path/to/prompt.txt",
+            "temperature": 0.7,
+        })
+    """
+    if not isinstance(config, dict):
+        raise TypeError(
+            f"build_config_from_dict requires a dict, got {type(config).__name__}. "
+            f"Use build_config_from_cli() with base_configs for file paths or lists."
+        )
+    return build_config_from_cli(config_class, args=[], base_configs=config)

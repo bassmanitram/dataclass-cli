@@ -5,6 +5,41 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.7.0] - 2026-08-18
+
+### Added
+- **Programmatic Configuration with `build_config_from_dict()`** - Build dataclass instances
+  from plain dictionaries without any CLI/argparse involvement
+  - New public function: `build_config_from_dict(config_class, config)` 
+  - Accepts only `Dict[str, Any]` — raises `TypeError` for non-dict inputs with helpful message
+  - Full resolution pipeline: nested dataclass reconstruction, `cli_resolve()` execution, defaults
+  - Recommended entry point for Lambda handlers, SDKs, test harnesses, and any non-CLI context
+  - Thin wrapper over existing `build_config_from_cli()` — zero new internal complexity
+  - Eliminates the `args=[], base_configs=dict` ceremony for programmatic usage
+
+### Examples
+- New example: `examples/programmatic_example.py` - Demonstrates three patterns:
+  - Lambda handler pattern (full config from merged dict)
+  - Partial config pattern (defaults fill the gaps)
+  - Test harness pattern (fixtures create config directly)
+
+### Tests
+- Added 17 comprehensive tests in `tests/test_build_config_from_dict.py`
+  - Basic scalar fields, defaults, empty dict, required field errors
+  - Nested dataclass reconstruction via `cli_nested()`
+  - `cli_resolve()` resolver invocation on dict values
+  - `cli_exclude()` fields settable via dict
+  - TypeError for non-dict inputs (string, list, int)
+  - Optional fields, list fields
+- All 660 tests passing
+- Coverage: 98.76%
+
+### Quality
+- 100% backward compatible — purely additive new function
+- All CI checks passing (black, isort, mypy, bandit, examples)
+- Exported in `__init__.py` and `__all__`
+
+
 ## [1.6.0] - 2025-07-23
 
 ### Added
