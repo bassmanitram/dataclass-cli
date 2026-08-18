@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **Programmatic Configuration with `build_config_from_dict()`** - Build dataclass instances
   from plain dictionaries without any CLI/argparse involvement
-  - New public function: `build_config_from_dict(config_class, config)` 
+  - New public function: `build_config_from_dict(config_class, config)`
   - Accepts only `Dict[str, Any]` — raises `TypeError` for non-dict inputs with helpful message
   - Full resolution pipeline: nested dataclass reconstruction, `cli_resolve()` execution, defaults
   - Recommended entry point for Lambda handlers, SDKs, test harnesses, and any non-CLI context

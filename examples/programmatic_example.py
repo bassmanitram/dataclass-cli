@@ -19,12 +19,7 @@ programmatic contexts, load the file yourself before passing the value.
 from dataclasses import dataclass
 from typing import Optional
 
-from dataclass_args import (
-    build_config_from_dict,
-    cli_help,
-    cli_nested,
-    cli_resolve,
-)
+from dataclass_args import build_config_from_dict, cli_help, cli_nested, cli_resolve
 
 
 def create_backend_instance(config) -> str:
