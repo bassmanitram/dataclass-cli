@@ -137,7 +137,7 @@ from .file_loading import is_file_loadable_value, load_file_content
 from .instantiate import instantiate
 from .utils import load_structured_file
 
-__version__ = "1.7.0"
+__version__ = "1.8.0"
 
 __all__ = [
     # Main API

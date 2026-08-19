@@ -340,3 +340,114 @@ def test_list_fields_with_defaults():
 
     assert result.items is None
     assert result.numbers is None
+
+
+def test_file_loadable_resolved_from_dict(tmp_path):
+    """@file reference in dict is resolved for cli_file_loadable fields."""
+    prompt_file = tmp_path / "prompt.txt"
+    prompt_file.write_text("You are helpful.")
+
+    @dataclass
+    class FileConfig:
+        prompt: str = cli_file_loadable(default="default")
+
+    result = build_config_from_dict(FileConfig, {"prompt": f"@{prompt_file}"})
+    assert result.prompt == "You are helpful."
+
+
+def test_file_loadable_literal_unchanged():
+    """Non-@ string passes through unchanged for file_loadable fields."""
+
+    @dataclass
+    class FileConfig:
+        prompt: str = cli_file_loadable(default="default")
+
+    result = build_config_from_dict(FileConfig, {"prompt": "literal value"})
+    assert result.prompt == "literal value"
+
+
+def test_file_loadable_missing_uses_default():
+    """Missing field uses default."""
+
+    @dataclass
+    class FileConfig:
+        prompt: str = cli_file_loadable(default="the default")
+
+    result = build_config_from_dict(FileConfig, {})
+    assert result.prompt == "the default"
+
+
+def test_file_loadable_nonexistent_file_raises():
+    """@file pointing to nonexistent file raises error."""
+
+    @dataclass
+    class FileConfig:
+        prompt: str = cli_file_loadable(default="default")
+
+    with pytest.raises(Exception):
+        build_config_from_dict(FileConfig, {"prompt": "@/nonexistent/path.txt"})
+
+
+def test_non_file_loadable_at_prefix_unchanged():
+    """@-prefixed value in regular field is NOT resolved."""
+
+    @dataclass
+    class RegularConfig:
+        name: str = "default"
+
+    result = build_config_from_dict(RegularConfig, {"name": "@some-value"})
+    assert result.name == "@some-value"
+
+
+def test_build_config_remembers_base_config_name(tmp_path):
+    """build_config() uses base_config_name from add_arguments() by default."""
+    import argparse
+    import json
+
+    from dataclass_args import GenericConfigBuilder
+
+    config_file = tmp_path / "my_config.json"
+    config_file.write_text(json.dumps({"name": "from-file", "count": 42}))
+
+    @dataclass
+    class MyConfig:
+        name: str = "default"
+        count: int = 0
+
+    builder = GenericConfigBuilder(MyConfig)
+    parser = argparse.ArgumentParser()
+    builder.add_arguments(parser, base_config_name="my-config")
+
+    args = parser.parse_args(["--my-config", str(config_file)])
+
+    # Without explicit base_config_name — should use "my_config" from add_arguments
+    config = builder.build_config(args)
+    assert config.name == "from-file"
+    assert config.count == 42
+
+
+def test_build_config_explicit_base_config_name_overrides(tmp_path):
+    """Explicit base_config_name in build_config overrides the stored one."""
+    import argparse
+    import json
+
+    from dataclass_args import GenericConfigBuilder
+
+    config_file = tmp_path / "alt.json"
+    config_file.write_text(json.dumps({"name": "alt-file"}))
+
+    @dataclass
+    class MyConfig:
+        name: str = "default"
+
+    builder = GenericConfigBuilder(MyConfig)
+    parser = argparse.ArgumentParser()
+    builder.add_arguments(parser, base_config_name="my-config")
+
+    # Add a second config argument manually
+    parser.add_argument("--alt", type=str)
+    args = parser.parse_args(["--alt", str(config_file)])
+
+    # Explicit base_config_name overrides
+    config = builder.build_config(args, base_config_name="alt")
+    assert config.name == "alt-file"
