@@ -138,10 +138,18 @@ class TypeInspector:
             field_type: Type to check
 
         Returns:
-            True if type is Dict[K, V]
+            True if type is Dict[K, V] or plain dict
         """
+        # Check if it's Dict[K, V] from typing
         origin, _ = TypeInspector.get_origin_and_args(field_type)
-        return origin is dict
+        if origin is dict:
+            return True
+
+        # Also accept plain dict type
+        if field_type is dict:
+            return True
+
+        return False
 
     @staticmethod
     def get_list_element_type(field_type: Type) -> Optional[Type]:

@@ -1245,7 +1245,7 @@ python examples/config_merging_example.py multi-source
 
 ### Programmatic Usage
 
-For non-CLI contexts use `build_config_from_dict()` to build a dataclass instance directly from a dictionary without any argparse involvement:
+For non-CLI contexts use `build_config_from_dict()` to build a dataclass instance directly from a dictionary:
 
 ```python
 from dataclass_args import build_config_from_dict
@@ -1254,6 +1254,7 @@ from dataclass_args import build_config_from_dict
 config_dict = {
     "app_name": "production-api",
     "port": 8080,
+    "system_prompt": "@/path/to/prompt.txt",  # @file references resolved!
     "database": {
         "host": "rds-prod.amazonaws.com",
         "port": 5432,
@@ -1262,21 +1263,33 @@ config_dict = {
 
 # One-liner: dict in, typed dataclass out
 config = build_config_from_dict(AppConfig, config_dict)
+
+# With layered base configs (same as build_config_from_cli)
+config = build_config_from_dict(
+    AppConfig,
+    {"port": 9000},                          # Highest priority
+    base_configs=[
+        "company-defaults.yaml",             # Lowest priority
+        {"environment": "staging"},          # Middle priority
+    ],
+)
 ```
 
 **Key behaviors:**
-- Nested dataclasses (`cli_nested`) reconstruct from nested dicts
+- `@file` references resolved for `cli_file_loadable` fields (loads file content)
+- Dict-file paths (`.json`/`.yaml`/`.toml`) loaded for dict-typed fields
 - `cli_resolve()` resolvers fire on assembled values
+- Nested dataclasses (`cli_nested`) reconstruct from nested dicts
+- `base_configs` support with same precedence rules as CLI mode
 - Fields with defaults work when omitted from the dict
 - `cli_exclude()` fields are settable (no CLI to exclude from)
-- Unknown keys are silently ignored
 - Only accepts `Dict[str, Any]` — raises `TypeError` for non-dict inputs
 
-**What does NOT work via dict:**
-- `@file` loading (`cli_file_loadable`) — file resolution happens in the argparse layer. Load files yourself before passing values.
-- `cli_choices()` validation — argparse enforces choices, `base_configs` bypasses that.
+**What does NOT apply via dict:**
+- `cli_choices()` validation — argparse enforces choices; dict bypasses that
 
 **See also:** [`examples/programmatic_example.py`](examples/programmatic_example.py) for complete working examples.
+
 
 
 ## API Reference
@@ -1304,15 +1317,18 @@ config = build_config_from_cli(
     MyDataclass,
     args=['--name', 'test'],
 
-#### `build_config_from_dict(config_class, config)`
+#### `build_config_from_dict(config_class, config, base_configs=None)`
 
-Build a dataclass instance from a dictionary without CLI involvement. Recommended for Lambda handlers, SDKs, and test harnesses.
+Build a dataclass instance from a dictionary with full resolution pipeline. Recommended for Lambda handlers, SDKs, and test harnesses.
 
 ```python
 from dataclass_args import build_config_from_dict
 
+# Simple usage
 config = build_config_from_dict(MyDataclass, {"name": "test", "port": 8080})
-```
+
+# With base configs
+config = build_config_from_dict(MyDataclass, {"port": 9000}, base_configs="defaults.yaml")
 ```
 
 ### Annotations

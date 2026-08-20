@@ -153,6 +153,7 @@ def build_config(
 def build_config_from_dict(
     config_class: type,
     config: dict,
+    base_configs: Optional[BaseConfigInput] = None,
 ):
     """
     Build a dataclass instance from a dictionary, processing values as CLI values.
@@ -163,12 +164,21 @@ def build_config_from_dict(
     - cli_resolve() post-load resolution
     - Nested dataclass reconstruction
 
+    Configuration sources are merged in the following order (later sources override earlier):
+    1. base_configs (if provided) - files and/or dicts applied in order
+    2. config dict values (highest priority)
+
     This is the recommended entry point for non-CLI contexts such as
     Lambda handlers, programmatic SDKs, and test harnesses.
 
     Args:
         config_class: Dataclass type to instantiate
         config: Dictionary of field values (processed as if from CLI)
+        base_configs: Optional base configuration(s) applied before config dict.
+                     Can be:
+                     - str: Path to a single config file
+                     - dict: A single configuration dictionary
+                     - List[Union[str, dict]]: Multiple configs applied in order
 
     Returns:
         Instance of config_class with all values resolved
@@ -178,11 +188,25 @@ def build_config_from_dict(
         TypeError: If config is not a dict
 
     Example:
+        # Simple usage
         config = build_config_from_dict(AppConfig, {
             "model": "bedrock:claude-3",
-            "system_prompt": "@/path/to/prompt.txt",
             "temperature": 0.7,
         })
+
+        # With base configs (overridden by config dict)
+        config = build_config_from_dict(
+            AppConfig,
+            {"temperature": 0.9},
+            base_configs='defaults.yaml',
+        )
+
+        # With multiple base configs
+        config = build_config_from_dict(
+            AppConfig,
+            {"temperature": 0.9},
+            base_configs=['base.yaml', {'model': 'fallback'}],
+        )
     """
     if not isinstance(config, dict):
         raise TypeError(
@@ -221,7 +245,21 @@ def build_config_from_dict(
     for key, value in cli_values.items():
         setattr(args, key, value)
 
-    # Run build pipeline with base_config_values for excluded/nested fields
+    # Combine user-supplied base_configs with internally-routed values.
+    # Precedence: base_configs (lowest) < base_config_values < config dict (highest, via Namespace)
+    combined_base_configs: List[Union[str, Dict[str, Any]]] = []
+
+    # Add user-supplied base_configs first (lowest precedence)
+    if base_configs is not None:
+        if isinstance(base_configs, list):
+            combined_base_configs.extend(base_configs)
+        else:
+            combined_base_configs.append(base_configs)
+
+    # Add internally-routed nested/excluded values on top
+    if base_config_values:
+        combined_base_configs.append(base_config_values)
+
     return builder.build_config(
-        args, base_configs=base_config_values if base_config_values else None
+        args, base_configs=combined_base_configs if combined_base_configs else None
     )

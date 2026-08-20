@@ -1,0 +1,205 @@
+"""
+CLI override processing: apply CLI arguments with field-type-specific handling.
+
+This module handles stages 3-4 of the config resolution pipeline:
+    3. Apply CLI argument overrides → merged Dict (per-field processing)
+    4. Property overrides for dict fields (--field-prop key:value syntax)
+
+Responsibilities:
+    - Get CLI values from argparse.Namespace
+    - Apply field-type-specific processing (lists, dicts, scalars)
+    - Load files for dict fields (.json/.yaml/.yml/.toml paths)
+    - Process @file references for cli_file_loadable fields
+    - Apply property overrides (--field-prop) to dict fields
+"""
+
+import argparse
+from typing import Any, Dict
+
+from .annotations import is_cli_resolve
+from .config_applicator import ConfigApplicator
+from .exceptions import ConfigurationError
+from .file_loading import process_file_loadable_value
+from .utils import load_structured_file
+
+
+class CliOverrideProcessor:
+    """
+    Processes CLI argument overrides with field-type-specific handling.
+
+    Handles:
+    - List fields: Replace config values with CLI values
+    - Dict fields: Load from file paths or use directly, merge with existing
+    - Scalar fields: Process @file references for cli_file_loadable
+    - Property overrides: Apply key:value overrides to dict fields
+    """
+
+    def __init__(self, config_fields: Dict[str, Dict[str, Any]]):
+        """
+        Initialize CLI override processor.
+
+        Args:
+            config_fields: Dictionary of analyzed field information
+        """
+        self.config_fields = config_fields
+
+    def apply_cli_overrides(
+        self, config: Dict[str, Any], args: argparse.Namespace
+    ) -> Dict[str, Any]:
+        """
+        Apply CLI argument overrides to configuration.
+
+        Args:
+            config: Current configuration dictionary
+            args: Parsed CLI arguments
+
+        Returns:
+            Final configuration dictionary with CLI overrides applied
+
+        Raises:
+            ConfigurationError: If CLI argument processing fails
+
+        Note:
+            Only processes fields included in the dataclass (not excluded).
+            Handles special cases: lists, dicts, file-loadable fields, property overrides, append actions.
+        """
+        # Only process fields that were included in CLI
+        # Skip nested dataclass fields (handled by reconstruct_nested_fields)
+        for field_name, info in self.config_fields.items():
+            if info.get("is_nested_dataclass", False):
+                continue
+
+            cli_value = self._get_cli_value(args, field_name)
+            if cli_value is not None:
+                self._apply_field_override(config, field_name, info, cli_value)
+
+            self._apply_property_overrides_for_field(config, field_name, info, args)
+
+        return config
+
+    def _get_cli_value(self, args: argparse.Namespace, field_name: str) -> Any:
+        """Get CLI value for a field from parsed arguments."""
+        arg_name = field_name.replace("-", "_")
+        return getattr(args, arg_name, None)
+
+    def _apply_field_override(
+        self,
+        config: Dict[str, Any],
+        field_name: str,
+        info: Dict[str, Any],
+        cli_value: Any,
+    ) -> None:
+        """Apply CLI override for a field based on its type."""
+        if info["is_list"]:
+            self._apply_list_override(config, field_name, cli_value)
+        elif info["is_dict"]:
+            # Dict field without cli_resolve: load from file path (string) or use dict directly
+            self._apply_dict_override(config, field_name, cli_value)
+        else:
+            # Scalar field OR cli_resolve field: pass through (handles @file, scalars, and resolver inputs)
+            self._apply_scalar_override(config, field_name, info, cli_value)
+
+    def _apply_list_override(
+        self, config: Dict[str, Any], field_name: str, cli_value: Any
+    ) -> None:
+        """Apply list override - CLI values replace config values."""
+        # CLI values replace config values (standard argparse behavior)
+        # With nargs='+' or '*', cli_value is already a list
+        # With action='append', cli_value is a list of sub-lists (if nargs specified) or list of values
+        config[field_name] = cli_value
+
+    def _apply_dict_override(
+        self, config: Dict[str, Any], field_name: str, cli_value: Any
+    ) -> None:
+        """Apply dict override - load from file if string, use directly if dict."""
+        try:
+            if isinstance(cli_value, dict):
+                # Already a dict (from programmatic usage) - use directly (no merging for cli_resolve)
+                dict_config = cli_value
+            elif isinstance(cli_value, str):
+                # String value - try to load as file, but if looks like non-file string, pass through
+                # Check if it looks like a file path (has common config file extension)
+                looks_like_file = any(
+                    cli_value.endswith(ext)
+                    for ext in [".json", ".yaml", ".yml", ".toml"]
+                )
+                if looks_like_file:
+                    # Intended as file path - load it (will error if not found)
+                    dict_config = load_structured_file(cli_value)
+                else:
+                    # Plain string value - pass through directly (for resolvers that accept strings)
+                    config[field_name] = cli_value
+                    return
+            else:
+                # Unexpected type - use as-is
+                config[field_name] = cli_value
+                return
+
+            existing = config.get(field_name, {})
+            if isinstance(existing, dict):
+                existing.update(dict_config)
+                config[field_name] = existing
+            else:
+                config[field_name] = dict_config
+        except Exception as e:
+            raise ConfigurationError(
+                f"Failed to load dictionary config for field '{field_name}' from {cli_value}: {e}"
+            ) from e
+
+    def _apply_scalar_override(
+        self,
+        config: Dict[str, Any],
+        field_name: str,
+        info: Dict[str, Any],
+        cli_value: Any,
+    ) -> None:
+        """Apply scalar override - process file-loadable fields if value is string."""
+        try:
+            if isinstance(cli_value, str):
+                processed_value = process_file_loadable_value(
+                    cli_value, field_name, info
+                )
+            else:
+                processed_value = cli_value
+            config[field_name] = processed_value
+        except (ValueError, Exception) as e:
+            raise ConfigurationError(
+                f"Failed to process field '{field_name}': {e}"
+            ) from e
+
+    def _apply_property_overrides_for_field(
+        self,
+        config: Dict[str, Any],
+        field_name: str,
+        info: Dict[str, Any],
+        args: argparse.Namespace,
+    ) -> None:
+        """Apply property overrides for dict fields."""
+        if not info["is_dict"]:
+            return
+
+        override_arg_name = info["override_name"][2:].replace("-", "_")
+        override_value = getattr(args, override_arg_name, None)
+        if not override_value:
+            return
+
+        # Protection for cli_resolve fields with pre-built objects
+        if is_cli_resolve(info):
+            existing = config.get(field_name)
+            if existing is not None and not isinstance(existing, dict):
+                raise ConfigurationError(
+                    f"Cannot apply property overrides to field '{field_name}': "
+                    f"value is already a {type(existing).__name__}, not a dict."
+                )
+
+        if field_name not in config:
+            config[field_name] = {}
+
+        try:
+            ConfigApplicator.apply_property_overrides(
+                config[field_name], override_value
+            )
+        except Exception as e:
+            raise ConfigurationError(
+                f"Failed to apply property overrides for field '{field_name}': {e}"
+            ) from e

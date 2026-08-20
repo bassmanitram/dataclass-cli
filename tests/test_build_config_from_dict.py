@@ -451,3 +451,155 @@ def test_build_config_explicit_base_config_name_overrides(tmp_path):
     # Explicit base_config_name overrides
     config = builder.build_config(args, base_config_name="alt")
     assert config.name == "alt-file"
+
+
+def test_build_config_from_dict_with_base_configs_file(tmp_path):
+    """base_configs file provides defaults, config dict overrides."""
+    import json
+
+    base_file = tmp_path / "base.json"
+    base_file.write_text(json.dumps({"name": "from-base", "count": 100}))
+
+    @dataclass
+    class Config:
+        name: str = "default"
+        count: int = 0
+
+    result = build_config_from_dict(
+        Config,
+        {"name": "from-dict"},
+        base_configs=str(base_file),
+    )
+    assert result.name == "from-dict"  # dict wins
+    assert result.count == 100  # from base file
+
+
+def test_build_config_from_dict_with_base_configs_dict():
+    """base_configs dict provides defaults, config dict overrides."""
+
+    @dataclass
+    class Config:
+        name: str = "default"
+        count: int = 0
+        debug: bool = False
+
+    result = build_config_from_dict(
+        Config,
+        {"name": "override"},
+        base_configs={"name": "base-name", "count": 42, "debug": True},
+    )
+    assert result.name == "override"  # dict wins
+    assert result.count == 42  # from base_configs
+    assert result.debug is True  # from base_configs
+
+
+def test_build_config_from_dict_with_base_configs_list(tmp_path):
+    """Multiple base_configs applied in order, config dict wins over all."""
+    import json
+
+    file1 = tmp_path / "first.json"
+    file1.write_text(json.dumps({"name": "first", "count": 10}))
+
+    @dataclass
+    class Config:
+        name: str = "default"
+        count: int = 0
+        debug: bool = False
+
+    result = build_config_from_dict(
+        Config,
+        {"debug": True},
+        base_configs=[str(file1), {"count": 99}],
+    )
+    assert result.name == "first"  # from file
+    assert result.count == 99  # second base_configs overrides first
+    assert result.debug is True  # from config dict
+
+
+def test_build_config_from_dict_no_base_configs():
+    """Without base_configs, behaves exactly as before."""
+
+    @dataclass
+    class Config:
+        name: str = "default"
+        count: int = 0
+
+    result = build_config_from_dict(Config, {"name": "test", "count": 5})
+    assert result.name == "test"
+    assert result.count == 5
+
+
+def test_base_configs_file_loadable_resolved(tmp_path):
+    """@file reference in base_configs is resolved for cli_file_loadable fields."""
+    from dataclass_args import cli_file_loadable
+
+    prompt_file = tmp_path / "prompt.txt"
+    prompt_file.write_text("Resolved from base_configs")
+
+    @dataclass
+    class Config:
+        name: str = "default"
+        prompt: str = cli_file_loadable(default="no prompt")
+
+    result = build_config_from_dict(
+        Config,
+        {"name": "test"},
+        base_configs={"prompt": f"@{prompt_file}"},
+    )
+    assert result.prompt == "Resolved from base_configs"
+
+
+def test_base_configs_dict_file_resolved(tmp_path):
+    """File path string in base_configs is loaded for dict fields."""
+    import json
+
+    dict_file = tmp_path / "settings.json"
+    dict_file.write_text(json.dumps({"key": "value", "number": 42}))
+
+    @dataclass
+    class Config:
+        name: str = "default"
+        settings: dict = None
+
+    result = build_config_from_dict(
+        Config,
+        {"name": "test"},
+        base_configs={"settings": str(dict_file)},
+    )
+    assert result.settings == {"key": "value", "number": 42}
+
+
+def test_base_configs_values_overridden_by_config_dict(tmp_path):
+    """Config dict values override base_configs (no double processing)."""
+    from dataclass_args import cli_file_loadable
+
+    base_file = tmp_path / "base_prompt.txt"
+    base_file.write_text("Base prompt")
+    override_file = tmp_path / "override_prompt.txt"
+    override_file.write_text("Override prompt")
+
+    @dataclass
+    class Config:
+        prompt: str = cli_file_loadable(default="default")
+
+    result = build_config_from_dict(
+        Config,
+        {"prompt": f"@{override_file}"},
+        base_configs={"prompt": f"@{base_file}"},
+    )
+    assert result.prompt == "Override prompt"
+
+
+def test_base_configs_non_file_loadable_at_prefix_unchanged():
+    """@-prefixed value in non-file-loadable field is NOT resolved from base_configs."""
+
+    @dataclass
+    class Config:
+        name: str = "default"
+
+    result = build_config_from_dict(
+        Config,
+        {},
+        base_configs={"name": "@not-a-file"},
+    )
+    assert result.name == "@not-a-file"

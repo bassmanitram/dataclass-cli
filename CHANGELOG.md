@@ -5,6 +5,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.8.1] - 2025-08-19
+
+### Architecture
+- **Major refactoring: builder.py decomposed into focused modules**
+  - `builder.py` (1394→183 lines) — Thin orchestrator
+  - `field_analyzer.py` (626 lines) — Field inspection, validation, collision detection
+  - `argument_registry.py` (751 lines) — argparse argument registration
+  - `config_resolver.py` (138 lines) — Pipeline orchestrator
+  - `config_merging.py` (159 lines) — Config normalization and merging (Stages 1-2)
+  - `cli_overrides.py` (205 lines) — CLI argument override processing (Stage 3)
+  - `value_resolution.py` (236 lines) — Raw value resolution, validation, cli_resolve (Stages 4-7)
+  - `convenience.py` (265 lines) — Public entry points
+- **All functions reduced to Cognitive Complexity ≤10** (was CC=22 max)
+- Public API unchanged — fully backward compatible
+
+### Fixed
+- **`build_config_from_dict()` now resolves `@file` references** — Previously, `cli_file_loadable`
+  fields passed through `@/path/to/file.txt` as literal strings. Now correctly loads file content.
+- **`build_config_from_dict()` handles dict values directly** — Dict-typed field values are used
+  as-is instead of attempting file-path loading.
+- **`build_config()` remembers `base_config_name` from `add_arguments()`** — Callers no longer
+  need to pass `base_config_name` explicitly if it was set during argument registration.
+- **`base_configs` values now pass through full resolution pipeline** — Values from `base_configs`
+  that survive merging (not overridden by main config) now get `@file` loading and dict-file
+  loading applied, matching the behavior of CLI-provided values.
+
+### Added
+- **`build_config_from_dict()` accepts `base_configs` parameter** — Same semantics as
+  `build_config_from_cli`: supports str (file path), dict, or List[Union[str, dict]].
+  Precedence: `base_configs` (lowest) < `config` dict (highest).
+- 15 new tests covering `build_config_from_dict` fixes and `base_configs` support
+
+### Tests
+- 675 tests passing (was 660 in v1.7.0)
+- Coverage: 97.74%
+- All CI checks passing (black, isort, mypy, flake8, pre-commit, twine)
+
+
 ## [1.7.0] - 2026-08-18
 
 ### Added

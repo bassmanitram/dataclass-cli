@@ -2,38 +2,45 @@
 
 ## Overview
 
-This project maintains **98.74%** code coverage with comprehensive testing and branch coverage enabled.
+This project maintains **97.74%** code coverage with comprehensive testing and branch coverage enabled.
 
-## Current Coverage Statistics (v1.6.0)
+## Current Coverage Statistics (v1.8.1)
 
 | Module | Statements | Missing | Branches | Partial | Coverage |
 |--------|------------|---------|----------|---------|----------|
 | `__init__.py` | 8 | 0 | 0 | 0 | **100.00%** |
 | `annotations.py` | 156 | 0 | 44 | 0 | **100.00%** |
 | `append_action.py` | 6 | 0 | 0 | 0 | **100.00%** |
-| `builder.py` | 442 | 2 | 208 | 8 | **98.46%** |
+| `argument_registry.py` | 201 | 1 | 78 | 5 | **97.85%** |
+| `builder.py` | 32 | 0 | 4 | 0 | **100.00%** |
+| `cli_overrides.py` | 74 | 2 | 30 | 1 | **97.12%** |
 | `config_applicator.py` | 49 | 0 | 16 | 0 | **100.00%** |
+| `config_merging.py` | 41 | 1 | 16 | 1 | **96.49%** |
+| `config_resolver.py` | 33 | 0 | 0 | 0 | **100.00%** |
+| `convenience.py` | 44 | 0 | 18 | 0 | **100.00%** |
 | `exceptions.py` | 8 | 0 | 0 | 0 | **100.00%** |
+| `field_analyzer.py` | 173 | 10 | 72 | 3 | **93.88%** |
 | `file_loading.py` | 40 | 0 | 16 | 0 | **100.00%** |
 | `formatter.py` | 9 | 0 | 4 | 0 | **100.00%** |
-| `instantiate.py` | 175 | 0 | 62 | 0 | **100.00%** |
+| `instantiate.py` | 185 | 0 | 72 | 0 | **100.00%** |
 | `nested_processor.py` | 111 | 3 | 46 | 1 | **97.45%** |
-| `type_inspector.py` | 69 | 3 | 28 | 3 | **93.81%** |
+| `type_inspector.py` | 73 | 3 | 32 | 3 | **94.29%** |
 | `utils.py` | 63 | 0 | 22 | 0 | **100.00%** |
-| **TOTAL** | **1136** | **8** | **446** | **12** | **98.74%** |
+| `value_resolution.py` | 83 | 5 | 42 | 2 | **94.40%** |
+| **TOTAL** | **1389** | **25** | **512** | **16** | **97.74%** |
 
 ## Test Suite
 
-- **Total Tests:** 633
-- **Test Execution Time:** ~3.7s
+- **Total Tests:** 675
+- **Test Execution Time:** ~3.5s
 - **All Tests Passing:** ✅
 - **Python Version:** 3.8+ (tested on 3.8–3.12)
 
 ## Coverage Requirements
 
 - **Minimum Required:** 88%
-- **Current Coverage:** 98.74% ✅
-- **Modules at 100%:** 9 of 12
+- **Current Coverage:** 97.74% ✅
+- **Modules at 100%:** 11 of 19
 
 ## Coverage History
 
@@ -41,10 +48,33 @@ This project maintains **98.74%** code coverage with comprehensive testing and b
 |---------|-------|----------|--------|
 | v1.4.3 | 429 | 92.24% | baseline |
 | v1.5.0 | 501 | 91.35% | +72 tests (new module) |
-| v1.6.0 (initial) | 588 | 91.35% | +87 tests |
-| v1.6.0 (round 1) | 618 | 94.27% | +30 tests, gap coverage |
-| v1.6.0 (round 2) | 631 | 96.37% | +13 tests, pragmas |
-| v1.6.0 (final) | 633 | 98.74% | +2 tests, pragmas |
+| v1.6.0 | 633 | 98.74% | +132 tests, gap coverage |
+| v1.7.0 | 660 | 98.76% | +27 tests (build_config_from_dict) |
+| v1.8.1 | 675 | 97.74% | +15 tests, major refactor (more modules = more partial branches) |
+
+## Architecture (v1.8.1)
+
+```
+dataclass_args/
+├── builder.py              # Orchestrator: ties FieldAnalyzer + ArgumentRegistry + ConfigResolver
+├── field_analyzer.py       # Phase 1: Field inspection, validation, collision detection
+├── argument_registry.py    # Phase 2: argparse argument registration
+├── config_resolver.py      # Phase 3: Pipeline orchestrator (delegates to stage modules)
+│   ├── config_merging.py   # Stages 1-2: Normalize & merge base_configs + config files
+│   ├── cli_overrides.py    # Stage 3: Apply CLI argument overrides
+│   └── value_resolution.py # Stages 4-7: File resolution, validation, cli_resolve
+├── convenience.py          # Public entry points (build_config, build_config_from_dict)
+├── annotations.py          # Field metadata annotations (cli_short, cli_nested, etc.)
+├── config_applicator.py    # Dict merge utilities
+├── nested_processor.py     # Nested dataclass flattening/reconstruction
+├── type_inspector.py       # Type system utilities
+├── file_loading.py         # @file syntax processing
+├── utils.py                # Structured file loading (JSON/YAML/TOML)
+├── instantiate.py          # Object instantiation from config
+├── formatter.py            # Help text formatting
+├── append_action.py        # Custom argparse append action
+└── exceptions.py           # Exception hierarchy
+```
 
 ## Running Coverage Reports
 
@@ -65,83 +95,42 @@ pytest --cov=dataclass_args.builder tests/
 pytest --cov=dataclass_args --cov-report=term-missing
 ```
 
-## Uncovered Code Analysis
-
-### Remaining Gaps (8 lines + 12 branch misses)
-
-All remaining uncovered code falls into three justified categories:
-
-**1. Branch-Coverage Misses in Complex Conditionals (builder.py)**
-- Partial branches in nested validation logic (e.g., `141->159`, `415->390`)
-- Complex conditional paths where both branches are technically valid but only one path is exercised in tests
-- Override name computation fallback (`line 829`)
-
-**2. Error Handler Paths (nested_processor.py)**
-- `lines 307-309`: Exception handler for `apply_property_overrides` failures
-- Only triggerable when the config applicator raises on valid-looking input (requires mocking)
-
-**3. Type Inspector Edge Cases (type_inspector.py)**
-- `lines 81-82`: `except ImportError: pass` for `typing.Union` (always available on 3.8+)
-- `line 178`: `Dict` with single type parameter (invalid Python syntax)
-- Branch misses in `is_nested_list` for edge cases
-
-### Pragma-Marked Code
-
-The following paths are marked with `# pragma: no cover` as they are untestable on the current Python version:
-
-- **Import fallbacks**: `typing_extensions` imports that only trigger on Python < 3.8
-- **PEP 604 fallbacks**: `UnionType` imports that only trigger on Python < 3.10
-- **Optional dependency imports**: YAML/TOML library imports when packages aren't installed
-- **Defensive guards**: Internal collision detection code superseded by earlier validation
-
-## Coverage by Category
-
-| Category | Coverage | Status |
-|----------|----------|--------|
-| Core Functionality | 98%+ | ⭐ Excellent |
-| Error Handling | 97%+ | ⭐ Excellent |
-| Type System | 94%+ | ✅ Good |
-| Configuration Loading | 100% | ⭐ Perfect |
-| Nested Dataclasses | 97%+ | ⭐ Excellent |
-| Annotations | 100% | ⭐ Perfect |
-| Object Instantiation | 100% | ⭐ Perfect |
-| File Loading | 100% | ⭐ Perfect |
-
 ## Test Organization
 
 ```
 tests/
-├── test_annotations.py             # Annotation functionality (29 tests)
-├── test_basic.py                   # Basic configuration building (20 tests)
-├── test_boolean_*.py               # Boolean flag handling (36 tests)
-├── test_builder_advanced.py        # Builder advanced paths (28 tests)
-├── test_cli_append.py              # Append action (40 tests)
-├── test_cli_choices.py             # Choice validation (20 tests)
-├── test_cli_nested.py              # Nested dataclasses (42 tests)
-├── test_cli_short.py               # Short options (18 tests)
-├── test_collisions.py              # Collision detection (11 tests)
-├── test_config_applicator.py       # Config application (36 tests)
-├── test_config_merging_*.py        # Config merging (10 tests)
-├── test_description.py             # Help text customization (18 tests)
-├── test_file_loading.py            # File loading (@file) (26 tests)
-├── test_instantiate.py             # Object instantiation (97 tests)
-├── test_instantiate_fixtures.py    # Fixture classes for instantiate tests
-├── test_nested_help_text.py        # Nested help text (5 tests)
-├── test_pep604_union.py            # PEP 604 union type support (15 tests)
-├── test_positional.py              # Positional arguments (38 tests)
-├── test_type_inspector.py          # Type inspection (36 tests)
-├── test_utils.py                   # File format loading (34 tests)
-└── test_*_override.py              # Property overrides (13 tests)
+├── test_annotations.py             # Annotation functionality
+├── test_basic.py                   # Basic configuration building
+├── test_boolean_*.py               # Boolean flag handling
+├── test_build_config_from_dict.py  # Programmatic dict-based config
+├── test_builder_advanced.py        # Builder advanced paths
+├── test_cli_append.py              # Append action
+├── test_cli_choices.py             # Choice validation
+├── test_cli_nested.py              # Nested dataclasses
+├── test_cli_resolve.py             # Post-load field resolution
+├── test_cli_short.py               # Short options
+├── test_collisions.py              # Collision detection
+├── test_config_applicator.py       # Config application
+├── test_config_merging_*.py        # Config merging
+├── test_description.py             # Help text customization
+├── test_file_loading.py            # File loading (@file)
+├── test_instantiate.py             # Object instantiation
+├── test_nested_help_text.py        # Nested help text
+├── test_pep604_union.py            # PEP 604 union type support
+├── test_positional.py              # Positional arguments
+├── test_type_inspector.py          # Type inspection
+└── test_utils.py                   # File format loading
 ```
 
 ## Quality Metrics
 
-- **Test Execution:** Fast (~3.7s for 633 tests)
+- **Test Execution:** Fast (~3.5s for 675 tests)
 - **Test Reliability:** 100% (no flaky tests)
+- **Cognitive Complexity:** All functions CC≤10
 - **Test Clarity:** High (class-based organization, one class per concern)
 - **Edge Case Coverage:** Comprehensive
 - **Integration Tests:** Included
-- **Mocking:** Minimal (only for truly untestable paths like IOError)
+- **Mocking:** Minimal (only for truly untestable paths)
 
 ## Continuous Integration
 
@@ -153,5 +142,5 @@ All tests run automatically on:
 
 ---
 
-**Last Updated:** 2025-06-28
-**Version:** 1.6.0
+**Last Updated:** 2025-08-19
+**Version:** 1.8.1
