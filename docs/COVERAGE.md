@@ -144,5 +144,5 @@ All tests run automatically on:
 
 ---
 
-**Last Updated:** 2025-08-20
+**Last Updated:** 2026-09-06
 **Version:** 1.9.0

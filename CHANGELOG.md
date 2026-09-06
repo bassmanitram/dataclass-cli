@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [1.9.0] - 2025-08-20
+## [1.9.0] - 2026-09-06
 
 ### Added
 - **Custom override names with `cli_override_name()`** — Specify a custom abbreviation for
@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Coverage: 97.63%
 
 
-## [1.8.1] - 2025-08-19
+## [1.8.1] - 2026-08-20
 
 ### Architecture
 - **Major refactoring: builder.py decomposed into focused modules**
@@ -99,7 +99,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Exported in `__init__.py` and `__all__`
 
 
-## [1.6.0] - 2025-07-23
+## [1.6.0] - 2026-07-23
 
 ### Added
 - **Generic Object Instantiation with `instantiate()`** - Construct Python objects from
