@@ -1450,6 +1450,19 @@ sandbox: Optional[SandboxBase] = combine_annotations(
 - Incompatible with: `cli_positional`, `cli_nested`, `cli_append`, `cli_exclude`, `cli_file_loadable`
 - In nested dataclasses: allowed but resolver NOT called (value stays raw)
 
+#### `cli_override_name(name, **kwargs)`
+
+Specify a custom override abbreviation for dict field property overrides.
+Dict fields auto-generate a short override argument from field name initials
+(e.g., `model_config` → `--mc`). Use this to resolve collisions.
+
+```python
+# Without annotation: sandbox_config → --sc, skills_config → --sc (collision!)
+# With annotation:
+sandbox_config: Dict[str, Any] = field(default_factory=dict)              # → --sc (auto)
+skills_config: Dict[str, Any] = cli_override_name("sk", default_factory=dict)  # → --sk
+```
+
 #### `cli_exclude(**kwargs)`
 
 Exclude fields from CLI argument generation.
@@ -1697,6 +1710,7 @@ from dataclass_args import (
     cli_nested,                  # Nested dataclasses
     cli_exclude,                 # Hide from CLI
     cli_file_loadable,           # @file loading
+    cli_override_name,           # Custom dict override abbreviation
     cli_resolve,                 # Post-load resolution
     combine_annotations,         # Combine features
     InstantiationError,          # Instantiation failures

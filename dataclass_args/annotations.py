@@ -192,6 +192,38 @@ def cli_short(short: str, **kwargs) -> Any:
     return field(**field_kwargs)
 
 
+def cli_override_name(name: str, **kwargs) -> Any:
+    """
+    Specify a custom override argument name for dict fields.
+
+    Dict fields automatically get an abbreviated override argument (e.g.,
+    sandbox_config → --sc) for property overrides like --sc key:value.
+    When two fields generate the same abbreviation, use this annotation
+    to resolve the collision.
+
+    Args:
+        name: Custom override abbreviation (without -- prefix)
+        **kwargs: Additional field parameters
+
+    Returns:
+        Field object with override name metadata
+
+    Example:
+        @dataclass
+        class Config:
+            sandbox_config: dict = field(default_factory=dict)              # → --sc (auto)
+            skills_config: dict = cli_override_name("sk", default_factory=dict)  # → --sk (explicit)
+    """
+    if not isinstance(name, str) or not name:
+        raise ValueError(f"Override name must be a non-empty string, got: {repr(name)}")
+
+    field_kwargs = kwargs.copy()
+    metadata = field_kwargs.pop("metadata", {})
+    metadata["cli_override_name"] = name
+    field_kwargs["metadata"] = metadata
+    return field(**field_kwargs)
+
+
 def cli_choices(choices: List[Any], **kwargs) -> Any:
     """
     Restrict field to a specific set of valid choices.
@@ -598,6 +630,11 @@ def get_cli_positional_nargs(field_info: Dict[str, Any]) -> Optional[Any]:
 def get_cli_positional_metavar(field_info: Dict[str, Any]) -> Optional[str]:
     """Get metavar for a positional CLI argument."""
     return _FieldMetadata.get(field_info, "cli_positional_metavar")
+
+
+def get_cli_override_name(field_info: Dict[str, Any]) -> Optional[str]:
+    """Get custom override name for a dict field."""
+    return _FieldMetadata.get(field_info, "cli_override_name")
 
 
 def get_cli_help(field_info: Dict[str, Any]) -> str:

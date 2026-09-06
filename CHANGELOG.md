@@ -5,6 +5,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.9.0] - 2025-08-20
+
+### Added
+- **Custom override names with `cli_override_name()`** — Specify a custom abbreviation for
+  dict field property override arguments. Resolves collisions when two dict fields share the
+  same auto-generated initials (e.g., `sandbox_config` and `skills_config` both → `--sc`).
+  ```python
+  sandbox_config: Dict[str, Any] = field(default_factory=dict)              # → --sc (auto)
+  skills_config: Dict[str, Any] = cli_override_name("sk", default_factory=dict)  # → --sk
+  ```
+- **Override name collision detection** — `ConfigBuilderError` raised at init time when two dict
+  fields generate the same override abbreviation, with a clear message suggesting `cli_override_name()`.
+- Compatible with `combine_annotations()` for use alongside `cli_help()` and other annotations.
+- `get_cli_override_name()` accessor for metadata introspection.
+- 10 new tests in `tests/test_cli_override_name.py`.
+
+### Tests
+- 685 tests passing (was 675 in v1.8.1)
+- Coverage: 97.63%
+
+
 ## [1.8.1] - 2025-08-19
 
 ### Architecture

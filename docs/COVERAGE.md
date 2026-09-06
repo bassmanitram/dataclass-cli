@@ -2,24 +2,24 @@
 
 ## Overview
 
-This project maintains **97.74%** code coverage with comprehensive testing and branch coverage enabled.
+This project maintains **97.63%** code coverage with comprehensive testing and branch coverage enabled.
 
-## Current Coverage Statistics (v1.8.1)
+## Current Coverage Statistics (v1.9.0)
 
 | Module | Statements | Missing | Branches | Partial | Coverage |
 |--------|------------|---------|----------|---------|----------|
 | `__init__.py` | 8 | 0 | 0 | 0 | **100.00%** |
-| `annotations.py` | 156 | 0 | 44 | 0 | **100.00%** |
+| `annotations.py` | 166 | 0 | 46 | 0 | **100.00%** |
 | `append_action.py` | 6 | 0 | 0 | 0 | **100.00%** |
 | `argument_registry.py` | 201 | 1 | 78 | 5 | **97.85%** |
-| `builder.py` | 32 | 0 | 4 | 0 | **100.00%** |
+| `builder.py` | 33 | 0 | 4 | 0 | **100.00%** |
 | `cli_overrides.py` | 74 | 2 | 30 | 1 | **97.12%** |
 | `config_applicator.py` | 49 | 0 | 16 | 0 | **100.00%** |
 | `config_merging.py` | 41 | 1 | 16 | 1 | **96.49%** |
 | `config_resolver.py` | 33 | 0 | 0 | 0 | **100.00%** |
 | `convenience.py` | 44 | 0 | 18 | 0 | **100.00%** |
 | `exceptions.py` | 8 | 0 | 0 | 0 | **100.00%** |
-| `field_analyzer.py` | 173 | 10 | 72 | 3 | **93.88%** |
+| `field_analyzer.py` | 189 | 11 | 84 | 5 | **93.41%** |
 | `file_loading.py` | 40 | 0 | 16 | 0 | **100.00%** |
 | `formatter.py` | 9 | 0 | 4 | 0 | **100.00%** |
 | `instantiate.py` | 185 | 0 | 72 | 0 | **100.00%** |
@@ -27,11 +27,11 @@ This project maintains **97.74%** code coverage with comprehensive testing and b
 | `type_inspector.py` | 73 | 3 | 32 | 3 | **94.29%** |
 | `utils.py` | 63 | 0 | 22 | 0 | **100.00%** |
 | `value_resolution.py` | 83 | 5 | 42 | 2 | **94.40%** |
-| **TOTAL** | **1389** | **25** | **512** | **16** | **97.74%** |
+| **TOTAL** | **1416** | **26** | **526** | **18** | **97.63%** |
 
 ## Test Suite
 
-- **Total Tests:** 675
+- **Total Tests:** 685
 - **Test Execution Time:** ~3.5s
 - **All Tests Passing:** ✅
 - **Python Version:** 3.8+ (tested on 3.8–3.12)
@@ -39,7 +39,7 @@ This project maintains **97.74%** code coverage with comprehensive testing and b
 ## Coverage Requirements
 
 - **Minimum Required:** 88%
-- **Current Coverage:** 97.74% ✅
+- **Current Coverage:** 97.63% ✅
 - **Modules at 100%:** 11 of 19
 
 ## Coverage History
@@ -50,9 +50,10 @@ This project maintains **97.74%** code coverage with comprehensive testing and b
 | v1.5.0 | 501 | 91.35% | +72 tests (new module) |
 | v1.6.0 | 633 | 98.74% | +132 tests, gap coverage |
 | v1.7.0 | 660 | 98.76% | +27 tests (build_config_from_dict) |
-| v1.8.1 | 675 | 97.74% | +15 tests, major refactor (more modules = more partial branches) |
+| v1.8.1 | 675 | 97.74% | +15 tests, major refactor |
+| v1.9.0 | 685 | 97.63% | +10 tests (cli_override_name) |
 
-## Architecture (v1.8.1)
+## Architecture (v1.9.0)
 
 ```
 dataclass_args/
@@ -107,6 +108,7 @@ tests/
 ├── test_cli_append.py              # Append action
 ├── test_cli_choices.py             # Choice validation
 ├── test_cli_nested.py              # Nested dataclasses
+├── test_cli_override_name.py       # Custom dict override names
 ├── test_cli_resolve.py             # Post-load field resolution
 ├── test_cli_short.py               # Short options
 ├── test_collisions.py              # Collision detection
@@ -124,7 +126,7 @@ tests/
 
 ## Quality Metrics
 
-- **Test Execution:** Fast (~3.5s for 675 tests)
+- **Test Execution:** Fast (~3.5s for 685 tests)
 - **Test Reliability:** 100% (no flaky tests)
 - **Cognitive Complexity:** All functions CC≤10
 - **Test Clarity:** High (class-based organization, one class per concern)
@@ -142,5 +144,5 @@ All tests run automatically on:
 
 ---
 
-**Last Updated:** 2025-08-19
-**Version:** 1.8.1
+**Last Updated:** 2025-08-20
+**Version:** 1.9.0
