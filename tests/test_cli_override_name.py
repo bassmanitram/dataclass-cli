@@ -1,18 +1,19 @@
 """Tests for cli_override_name annotation and override collision detection."""
 
-import pytest
 from dataclasses import dataclass, field
-from typing import Dict, Any
+from typing import Any, Dict
+
+import pytest
 
 from dataclass_args import (
     build_config_from_cli,
+    cli_help,
     cli_override_name,
     combine_annotations,
-    cli_help,
     get_cli_override_name,
 )
-from dataclass_args.exceptions import ConfigBuilderError
 from dataclass_args.builder import GenericConfigBuilder
+from dataclass_args.exceptions import ConfigBuilderError
 
 
 class TestCliOverrideName:
@@ -23,11 +24,9 @@ class TestCliOverrideName:
 
         @dataclass
         class Config:
-            model_config: Dict[str, Any] = cli_override_name(
-                "mc", default_factory=dict
-            )
+            model_config: Dict[str, Any] = cli_override_name("mc", default_factory=dict)
 
-        config = build_config_from_cli(Config, args=[])
+        build_config_from_cli(Config, args=[])
         # Just verify it builds without error — override name is --mc
 
     def test_custom_override_name_property_override(self, tmp_path):
@@ -39,9 +38,7 @@ class TestCliOverrideName:
 
         @dataclass
         class Config:
-            model_config: Dict[str, Any] = cli_override_name(
-                "mc", default_factory=dict
-            )
+            model_config: Dict[str, Any] = cli_override_name("mc", default_factory=dict)
 
         config = build_config_from_cli(
             Config, args=["--model-config", str(cfg), "--mc", "extra:added"]
@@ -60,7 +57,7 @@ class TestCliOverrideName:
             )
 
         # Should NOT raise — sandbox_config→--sc, skills_config→--sk
-        config = build_config_from_cli(Config, args=[])
+        build_config_from_cli(Config, args=[])
 
     def test_collision_detected_without_annotation(self):
         """Two dict fields with same initials raise ConfigBuilderError."""
@@ -84,16 +81,14 @@ class TestCliOverrideName:
                 default_factory=dict,
             )
 
-        config = build_config_from_cli(Config, args=[])
+        build_config_from_cli(Config, args=[])
 
     def test_get_cli_override_name_accessor(self):
         """get_cli_override_name returns the custom name."""
 
         @dataclass
         class Config:
-            model_config: Dict[str, Any] = cli_override_name(
-                "mc", default_factory=dict
-            )
+            model_config: Dict[str, Any] = cli_override_name("mc", default_factory=dict)
 
         from dataclasses import fields
 
@@ -133,4 +128,4 @@ class TestCliOverrideName:
             server_params: Dict[str, Any] = field(default_factory=dict)
 
         # mc and sp — no collision
-        config = build_config_from_cli(Config, args=[])
+        build_config_from_cli(Config, args=[])
