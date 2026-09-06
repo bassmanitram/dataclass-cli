@@ -95,6 +95,9 @@ class GenericConfigBuilder:
         # Validate short option collisions (for nested fields with no prefix)
         self.field_analyzer.validate_short_option_collisions(self._config_fields)
 
+        # Validate override name collisions (for dict fields)
+        self.field_analyzer.validate_override_name_collisions(self._config_fields)
+
     def _flatten_nested_fields(self) -> Dict[str, Any]:
         """Flatten nested fields (delegates to FieldAnalyzer)."""
         return self.field_analyzer.flatten_nested_fields(self._config_fields)

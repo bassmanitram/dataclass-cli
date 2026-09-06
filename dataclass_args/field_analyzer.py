@@ -34,6 +34,7 @@ except ImportError:  # pragma: no cover
 
 from .annotations import (
     get_cli_nested_prefix,
+    get_cli_override_name,
     get_cli_positional_nargs,
     get_cli_short,
     is_cli_append,
@@ -154,7 +155,7 @@ class FieldAnalyzer:
             "default": default_value,
             "has_default": has_default,
             "cli_name": self.field_to_cli_name(field_obj.name),
-            "override_name": self.field_to_override_name(field_obj.name),
+            "override_name": self.field_to_override_name(field_obj.name, field_obj),
             "field_obj": field_obj,  # Include field object for metadata access
         }
 
@@ -389,9 +390,28 @@ class FieldAnalyzer:
         """Convert field name to CLI argument name."""
         return "--" + field_name.replace("_", "-")
 
-    def field_to_override_name(self, field_name: str) -> str:
-        """Convert field name to override argument name."""
-        # Use abbreviation for override arguments
+    def field_to_override_name(self, field_name: str, field_obj: Any = None) -> str:
+        """
+        Convert field name to override argument name.
+
+        Uses cli_override_name annotation if present, otherwise generates
+        an abbreviation from the first letter of each underscore-separated word.
+
+        Args:
+            field_name: The dataclass field name
+            field_obj: Optional field object to check for cli_override_name annotation
+
+        Returns:
+            Override argument name with -- prefix (e.g., '--sc', '--sk')
+        """
+        # Check for explicit override name annotation
+        if field_obj is not None:
+            temp_info = {"field_obj": field_obj}
+            custom_name = get_cli_override_name(temp_info)
+            if custom_name is not None:
+                return "--" + custom_name
+
+        # Fall back to algorithmic abbreviation
         words = field_name.split("_")
         if len(words) == 1:
             return "--" + field_name[0]
@@ -624,3 +644,37 @@ class FieldAnalyzer:
         )
 
         raise ConfigBuilderError("\n".join(error_lines))
+
+    def validate_override_name_collisions(
+        self, config_fields: Dict[str, Dict[str, Any]]
+    ) -> None:
+        """
+        Detect and report override name collisions between dict fields.
+
+        Two dict fields that generate the same override abbreviation (e.g.,
+        sandbox_config and skills_config both → --sc) will cause argparse
+        to raise an error. This method detects the collision early with a
+        clear error message.
+
+        Args:
+            config_fields: Analyzed field information dictionary
+
+        Raises:
+            ConfigBuilderError: If two dict fields share the same override name
+        """
+        seen: Dict[str, str] = {}
+        for field_name, info in config_fields.items():
+            if not info.get("is_dict", False):
+                continue
+            override = info.get("override_name", "")
+            if not override:
+                continue
+            if override in seen:
+                raise ConfigBuilderError(
+                    f"Override name collision detected:\n"
+                    f"  {override}\n"
+                    f"    - {seen[override]}\n"
+                    f"    - {field_name}\n"
+                    f"Use cli_override_name() to set a custom override for one of them."
+                )
+            seen[override] = field_name

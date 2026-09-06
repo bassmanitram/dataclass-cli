@@ -99,6 +99,7 @@ from .annotations import (
     cli_help,
     cli_include,
     cli_nested,
+    cli_override_name,
     cli_positional,
     cli_resolve,
     cli_short,
@@ -109,6 +110,7 @@ from .annotations import (
     get_cli_append_nargs,
     get_cli_choices,
     get_cli_nested_prefix,
+    get_cli_override_name,
     get_cli_positional_metavar,
     get_cli_positional_nargs,
     get_cli_resolver,
@@ -137,7 +139,7 @@ from .file_loading import is_file_loadable_value, load_file_content
 from .instantiate import instantiate
 from .utils import load_structured_file
 
-__version__ = "1.8.1"
+__version__ = "1.9.0"
 
 __all__ = [
     # Main API
@@ -150,6 +152,7 @@ __all__ = [
     # Annotations
     "cli_help",
     "cli_short",
+    "cli_override_name",
     "cli_choices",
     "cli_exclude",
     "cli_include",
@@ -160,6 +163,7 @@ __all__ = [
     "cli_resolve",
     "combine_annotations",
     "get_cli_short",
+    "get_cli_override_name",
     "get_cli_choices",
     "get_cli_nested_prefix",
     "get_cli_positional_nargs",
