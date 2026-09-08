@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project maintains **97.63%** code coverage with comprehensive testing and branch coverage enabled.
+This project maintains **97.58%** code coverage with comprehensive testing and branch coverage enabled.
 
 ## Current Coverage Statistics (v1.9.0)
 
@@ -14,7 +14,7 @@ This project maintains **97.63%** code coverage with comprehensive testing and b
 | `argument_registry.py` | 201 | 1 | 78 | 5 | **97.85%** |
 | `builder.py` | 33 | 0 | 4 | 0 | **100.00%** |
 | `cli_overrides.py` | 74 | 2 | 30 | 1 | **97.12%** |
-| `config_applicator.py` | 49 | 0 | 16 | 0 | **100.00%** |
+| `config_applicator.py` | 74 | 1 | 32 | 1 | **98.11%** |
 | `config_merging.py` | 41 | 1 | 16 | 1 | **96.49%** |
 | `config_resolver.py` | 33 | 0 | 0 | 0 | **100.00%** |
 | `convenience.py` | 44 | 0 | 18 | 0 | **100.00%** |
@@ -27,11 +27,11 @@ This project maintains **97.63%** code coverage with comprehensive testing and b
 | `type_inspector.py` | 73 | 3 | 32 | 3 | **94.29%** |
 | `utils.py` | 63 | 0 | 22 | 0 | **100.00%** |
 | `value_resolution.py` | 83 | 5 | 42 | 2 | **94.40%** |
-| **TOTAL** | **1416** | **26** | **526** | **18** | **97.63%** |
+| **TOTAL** | **1416** | **26** | **526** | **18** | **97.58%** |
 
 ## Test Suite
 
-- **Total Tests:** 685
+- **Total Tests:** 723
 - **Test Execution Time:** ~3.5s
 - **All Tests Passing:** ✅
 - **Python Version:** 3.8+ (tested on 3.8–3.12)
@@ -39,7 +39,7 @@ This project maintains **97.63%** code coverage with comprehensive testing and b
 ## Coverage Requirements
 
 - **Minimum Required:** 88%
-- **Current Coverage:** 97.63% ✅
+- **Current Coverage:** 97.58% ✅
 - **Modules at 100%:** 11 of 19
 
 ## Coverage History
@@ -51,7 +51,7 @@ This project maintains **97.63%** code coverage with comprehensive testing and b
 | v1.6.0 | 633 | 98.74% | +132 tests, gap coverage |
 | v1.7.0 | 660 | 98.76% | +27 tests (build_config_from_dict) |
 | v1.8.1 | 675 | 97.74% | +15 tests, major refactor |
-| v1.9.0 | 685 | 97.63% | +10 tests (cli_override_name) |
+| v1.9.0 | 723 | 97.58% | +48 tests (cli_override_name, list overrides) |
 
 ## Architecture (v1.9.0)
 
@@ -126,7 +126,7 @@ tests/
 
 ## Quality Metrics
 
-- **Test Execution:** Fast (~3.5s for 685 tests)
+- **Test Execution:** Fast (~3.5s for 723 tests)
 - **Test Reliability:** 100% (no flaky tests)
 - **Cognitive Complexity:** All functions CC≤10
 - **Test Clarity:** High (class-based organization, one class per concern)

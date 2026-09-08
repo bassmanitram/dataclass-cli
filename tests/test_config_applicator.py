@@ -169,6 +169,86 @@ class TestSetNestedProperty:
             ConfigApplicator.set_nested_property(target, "key.nested", "value")
 
 
+class TestListIndexOverrides:
+    """Test list index and append support in property overrides."""
+
+    def test_set_list_element_by_index(self):
+        target = {"items": ["a", "b", "c"]}
+        ConfigApplicator.set_nested_property(target, "items.1", "new")
+        assert target == {"items": ["a", "new", "c"]}
+
+    def test_set_first_list_element(self):
+        target = {"items": ["old"]}
+        ConfigApplicator.set_nested_property(target, "items.0", "new")
+        assert target == {"items": ["new"]}
+
+    def test_nested_property_in_list_element(self):
+        target = {"data": [{"name": "old", "value": 1}]}
+        ConfigApplicator.set_nested_property(target, "data.0.name", "new")
+        assert target == {"data": [{"name": "new", "value": 1}]}
+
+    def test_deep_nested_list_navigation(self):
+        target = {"a": [{"b": [{"c": "old"}]}]}
+        ConfigApplicator.set_nested_property(target, "a.0.b.0.c", "new")
+        assert target == {"a": [{"b": [{"c": "new"}]}]}
+
+    def test_append_to_list(self):
+        target = {"items": ["a", "b"]}
+        ConfigApplicator.set_nested_property(target, "items.+", "c")
+        assert target == {"items": ["a", "b", "c"]}
+
+    def test_append_parsed_value(self):
+        target = {"nums": [1, 2]}
+        ConfigApplicator.set_nested_property(target, "nums.+", "3")
+        assert target == {"nums": [1, 2, 3]}
+
+    def test_append_to_empty_list(self):
+        target = {"items": []}
+        ConfigApplicator.set_nested_property(target, "items.+", "first")
+        assert target == {"items": ["first"]}
+
+    def test_index_out_of_range_raises(self):
+        target = {"items": ["a"]}
+        with pytest.raises(ValueError, match="List index out of range"):
+            ConfigApplicator.set_nested_property(target, "items.5", "val")
+
+    def test_index_out_of_range_in_navigation_raises(self):
+        target = {"data": [{"name": "a"}]}
+        with pytest.raises(ValueError, match="List index out of range"):
+            ConfigApplicator.set_nested_property(target, "data.3.name", "val")
+
+    def test_non_numeric_key_on_list_raises(self):
+        target = {"items": ["a", "b"]}
+        with pytest.raises(ValueError, match="non-numeric key"):
+            ConfigApplicator.set_nested_property(target, "items.foo", "val")
+
+    def test_dict_with_numeric_key_unchanged(self):
+        """Backward compat: numeric key on dict stays a string dict key."""
+        target = {"items": {}}
+        ConfigApplicator.set_nested_property(target, "items.0", "value")
+        assert target == {"items": {"0": "value"}}
+
+    def test_plus_on_dict_is_string_key(self):
+        """+ on a dict creates a string key, not an append."""
+        target = {"config": {}}
+        ConfigApplicator.set_nested_property(target, "config.+", "value")
+        assert target == {"config": {"+": "value"}}
+
+    def test_apply_overrides_with_list_index(self):
+        """End-to-end via apply_property_overrides."""
+        target = {"items": ["a", "b"], "data": [{"name": "old"}]}
+        ConfigApplicator.apply_property_overrides(
+            target, ["items.0:new", "data.0.name:updated"]
+        )
+        assert target == {"items": ["new", "b"], "data": [{"name": "updated"}]}
+
+    def test_apply_overrides_with_append(self):
+        """End-to-end append via apply_property_overrides."""
+        target = {"tags": ["python"]}
+        ConfigApplicator.apply_property_overrides(target, ["tags.+:cli", "tags.+:tool"])
+        assert target == {"tags": ["python", "cli", "tool"]}
+
+
 class TestParseValue:
     """Test parse_value method."""
 

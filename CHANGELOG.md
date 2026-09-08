@@ -5,6 +5,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.9.1] - 2026-09-08
+
+### Added
+- **List index and append support in property overrides** — Navigate into list elements
+  with numeric indices (`items.0:value`) and append with `+` (`items.+:value`).
+  Supports deep navigation (`data.0.name:new`). List behavior is runtime-determined:
+  numeric keys on dicts remain string keys for backward compatibility.
+
+### Documentation
+- New "Dict Field Property Overrides" section in README documenting the full override
+  syntax: basic key:value, dot-path nesting, list indexing, list append, and collisions.
+- Added property overrides to features list and type support table.
+
+### Tests
+- 723 tests passing (was 685 in v1.9.0)
+- 38 new tests in `tests/test_config_applicator_list_operations.py`
+- Coverage: 97.58%
+
+
 ## [1.9.0] - 2026-09-06
 
 ### Added
@@ -19,12 +38,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fields generate the same override abbreviation, with a clear message suggesting `cli_override_name()`.
 - Compatible with `combine_annotations()` for use alongside `cli_help()` and other annotations.
 - `get_cli_override_name()` accessor for metadata introspection.
-- 10 new tests in `tests/test_cli_override_name.py`.
 
 ### Tests
 - 685 tests passing (was 675 in v1.8.1)
+- 10 new tests in `tests/test_cli_override_name.py`
 - Coverage: 97.63%
-
 
 ## [1.8.1] - 2026-08-20
 
