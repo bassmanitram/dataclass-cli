@@ -22,6 +22,7 @@ Generate command-line interfaces from Python dataclasses.
 - **[Repeatable Options](#repeatable-options)** - Allow options to be specified multiple times with `cli_append()`
 - **[File Loading](#file-loadable-parameters)** - Load parameters from files using `@filename` syntax
 - **[Config Merging](#configuration-merging)** - Combine configuration sources with hierarchical overrides
+- **[Property Overrides](#dict-field-property-overrides)** - Set individual dict properties with `--mc key:value` and list indexing
 - **[Flexible Types](#type-support)** - Support for `List`, `Dict`, `Optional`, and custom types
 - **[Field Resolution](#field-resolution)** - Transform config dicts into typed objects with `cli_resolve()`
 - **[Object Instantiation](#object-instantiation)** - Construct objects from config using `instantiate()`
@@ -1243,6 +1244,80 @@ python examples/config_merging_example.py multi-source
 - [API Reference](#api-reference) - Full API documentation
 
 
+### Dict Field Property Overrides
+
+Dict fields (`Dict[str, Any]`) automatically get a short override argument for setting individual properties via the CLI. The override name is auto-generated from field name initials (e.g., `model_config` → `--mc`), or set explicitly with `cli_override_name()`.
+
+```python
+from dataclasses import dataclass, field
+from typing import Dict, Any
+from dataclass_args import build_config, cli_override_name
+
+@dataclass
+class AppConfig:
+    model_config: Dict[str, Any] = field(default_factory=dict)
+    # Auto-generated override: --mc
+```
+
+#### Basic Property Overrides
+
+Use `--abbreviation key:value` to set individual properties:
+
+```bash
+# Load dict from file, then override specific properties
+$ python app.py --model-config model.yaml --mc temperature:0.9 --mc max_tokens:4096
+
+# Set nested properties with dot notation
+$ python app.py --model-config model.yaml --mc provider.settings.timeout:30
+
+# Values are auto-parsed (JSON types)
+$ python app.py --mc count:42 --mc enabled:true --mc name:my-model
+# Result: {"count": 42, "enabled": true, "name": "my-model"}
+```
+
+#### List Element Overrides
+
+When a property value is a list, use numeric indices to modify individual elements, or `+` to append:
+
+```bash
+# Given model.yaml contains: {"tags": ["python", "ml", "v1"], "endpoints": [{"url": "http://old"}]}
+
+# Replace a list element by index
+$ python app.py --model-config model.yaml --mc tags.0:updated-python
+# Result: tags = ["updated-python", "ml", "v1"]
+
+# Append to a list
+$ python app.py --model-config model.yaml --mc tags.+:new-tag
+# Result: tags = ["python", "ml", "v1", "new-tag"]
+
+# Modify a property inside a list element
+$ python app.py --model-config model.yaml --mc endpoints.0.url:http://new
+# Result: endpoints = [{"url": "http://new"}]
+
+# Multiple list operations
+$ python app.py --model-config model.yaml --mc tags.0:first --mc tags.+:last
+```
+
+**Index rules:**
+- `items.0` — set element at index 0 (list must already exist and index must be in range)
+- `items.+` — append new element to list
+- `items.0.name` — navigate into list element 0, then set `name` property
+- Negative indices are not supported
+- If the container is a dict (not a list), numeric keys create string dict keys: `{"0": "value"}`
+
+#### Override Name Collisions
+
+When two dict fields share the same auto-generated abbreviation, use `cli_override_name()`:
+
+```python
+@dataclass
+class Config:
+    sandbox_config: Dict[str, Any] = field(default_factory=dict)              # → --sc (auto)
+    skills_config: Dict[str, Any] = cli_override_name("sk", default_factory=dict)  # → --sk
+```
+
+Without the annotation, both fields would generate `--sc`, causing a `ConfigBuilderError` at init time with a message suggesting the fix.
+
 ### Programmatic Usage
 
 For non-CLI contexts use `build_config_from_dict()` to build a dataclass instance directly from a dictionary:
@@ -1503,7 +1578,7 @@ Dataclass CLI supports standard Python types:
 | `float` | Parsed as float | `--rate 0.1` |
 | `bool` | Flag with negative | `--debug` or `--no-debug` |
 | `List[T]` | Multiple values | `--items a b c` |
-| `Dict[str, Any]` | Config file + overrides | `--config file.json --c key:value` |
+| `Dict[str, Any]` | Config file + property overrides | `--config file.json --c key:value --c items.0:new` |
 | `Optional[T]` | Optional parameter | `--timeout 30` (or omit) |
 | `Path` | Path object | `--output /path/to/file` |
 | Custom types | String representation | `--custom "value"` |
